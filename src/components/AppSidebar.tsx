@@ -35,14 +35,14 @@ const AppSidebar = () => {
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 z-40 h-14 bg-sidebar border-b border-sidebar-border">
         <div className="flex h-full items-center justify-between px-4">
-          <div className="flex gap-7">
+          <div className="flex gap-14">
             {/* Logo and Brand */}
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg">
                 <Code2 className="h-4 w-4 text-sidebar-primary-foreground" />
               </div>
               <span className="text-lg font-bold text-sidebar-accent-foreground font-display hidden sm:inline">
-                CodeTracker
+                ByteBin
               </span>
 
               {/* Mobile Menu Button */}

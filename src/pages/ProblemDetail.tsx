@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getProblems, deleteProblem } from "@/utils/localStorage";
+import { getProblems, deleteProblem, type Solution } from "@/utils/localStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Edit, Trash2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,6 +11,7 @@ const ProblemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const problem = getProblems().find((p) => p.id === id);
+  const [activeTab, setActiveTab] = useState("");
 
   if (!problem) {
     return (
@@ -25,14 +28,20 @@ const ProblemDetail = () => {
     );
   }
 
+  // Set initial active tab if not set
+  const solutions = problem.solutions || [];
+  if (!activeTab && solutions.length > 0) {
+    setActiveTab(solutions[0].id);
+  }
+
   const handleDelete = () => {
     deleteProblem(problem.id);
     toast.success("Problem deleted");
     navigate("/problems");
   };
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(problem.code);
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
     toast.success("Code copied to clipboard!");
   };
 
@@ -63,6 +72,11 @@ const ProblemDetail = () => {
                 <CardTitle className="text-xl font-display">
                   {problem.title}
                 </CardTitle>
+                {problem.description && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {problem.description}
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
                     {problem.topic}
@@ -91,20 +105,42 @@ const ProblemDetail = () => {
         </div>
 
         <div className=" flex flex-col w-[60%] p-2 gap-4">
-          {problem.code && (
+          {solutions.length > 0 && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Solution Code
+                  Solutions
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={copyCode}>
-                  <Copy className="mr-2 h-3 w-3" /> Copy
-                </Button>
               </CardHeader>
               <CardContent>
-                <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm font-mono whitespace-pre-wrap">
-                  {problem.code}
-                </pre>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="w-full justify-start">
+                    {solutions.map((sol, index) => (
+                      <TabsTrigger key={sol.id} value={sol.id}>
+                        {sol.title || `Solution ${index + 1}`}
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          ({sol.language})
+                        </span>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {solutions.map((sol) => (
+                    <TabsContent key={sol.id} value={sol.id} className="mt-4">
+                      <div className="flex justify-end mb-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => copyCode(sol.code)}
+                        >
+                          <Copy className="mr-2 h-3 w-3" /> Copy
+                        </Button>
+                      </div>
+                      <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm font-mono whitespace-pre-wrap">
+                        {sol.code}
+                      </pre>
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </CardContent>
             </Card>
           )}
@@ -156,3 +192,4 @@ const ProblemDetail = () => {
 };
 
 export default ProblemDetail;
+

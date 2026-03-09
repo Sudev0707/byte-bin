@@ -142,6 +142,11 @@ const ProblemList = () => {
                   <Link to={`/problem/${p.id}`} className="font-medium hover:text-primary transition-colors truncate block">
                     {p.title}
                   </Link>
+                  {p.description && (
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {p.description}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {p.topic} · {p.language} · {p.dateAdded}
                   </p>

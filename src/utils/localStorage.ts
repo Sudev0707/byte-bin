@@ -1,10 +1,18 @@
+export interface Solution {
+  id: string;
+  title: string;
+  code: string;
+  language: string;
+}
+
 export interface Problem {
   id: string;
   title: string;
+  description?: string;
   topic: string;
   language: string;
   difficulty: "Easy" | "Medium" | "Hard";
-  code: string;
+  solutions: Solution[];
   notes: string;
   references: string[];
   dateAdded: string;
@@ -18,9 +26,38 @@ export interface Session {
 const PROBLEMS_KEY = "problems";
 const SESSION_KEY = "session";
 
+// Migration helper to convert old problem format to new format
+const migrateProblem = (problem: any): Problem => {
+  // If problem already has solutions array, return as is
+  if (problem.solutions && Array.isArray(problem.solutions)) {
+    return problem as Problem;
+  }
+  
+  // Migrate old format with single code field to new solutions array
+  const migrated: Problem = {
+    ...problem,
+    solutions: problem.code 
+      ? [{
+          id: generateId(),
+          title: "Solution 1",
+          code: problem.code,
+          language: problem.language || "JavaScript",
+        }]
+      : [],
+  };
+  
+  // Remove old code field if it exists
+  delete (migrated as any).code;
+  
+  return migrated;
+};
+
 export const getProblems = (): Problem[] => {
   const data = localStorage.getItem(PROBLEMS_KEY);
-  return data ? JSON.parse(data) : [];
+  if (!data) return [];
+  
+  const problems = JSON.parse(data);
+  return problems.map(migrateProblem);
 };
 
 export const saveProblem = (problem: Problem) => {
