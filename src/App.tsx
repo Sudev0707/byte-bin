@@ -11,6 +11,7 @@ import ProblemList from "@/pages/ProblemList";
 import ProblemDetail from "@/pages/ProblemDetail";
 import Statistics from "@/pages/Statistics";
 import AppSidebar from "@/components/AppSidebar";
+import Footer from "@/components/Footer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
