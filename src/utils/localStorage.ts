@@ -21,6 +21,8 @@ export interface Problem {
 export interface Session {
   isLoggedIn: boolean;
   username: string;
+  email?: string;
+  imageUrl?: string;
 }
 
 const PROBLEMS_KEY = "problems";

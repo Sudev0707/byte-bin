@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearSession } from "@/utils/localStorage";
+import { useAuth, UserButton } from "@clerk/clerk-react";
 import {
   Code2,
   LayoutDashboard,
@@ -24,8 +25,15 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      // Fallback to local session clear if Clerk signout fails
+      console.error("Clerk signout error:", error);
+    }
     clearSession();
     navigate("/login");
   };
@@ -79,8 +87,16 @@ const AppSidebar = () => {
             </nav>
           </div>
 
-          {/* Logout Button */}
+          {/* User Menu & Logout Button */}
           <div className="flex items-center gap-2">
+            <UserButton 
+              afterSignOutUrl="/login"
+              appearance={{
+                elements: {
+                  avatarBox: "h-8 w-8"
+                }
+              }}
+            />
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-lg font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
