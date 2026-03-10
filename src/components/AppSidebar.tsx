@@ -33,16 +33,16 @@ const AppSidebar = () => {
   return (
     <>
       {/* Top Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-40 h-14 bg-sidebar border-b border-sidebar-border">
-        <div className="flex h-full items-center justify-between px-4">
+      <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-sidebar border-b border-sidebar-border">
+        <div className="flex h-full items-center justify-between px-10">
           <div className="flex gap-14">
             {/* Logo and Brand */}
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg">
+              {/* <div className="flex h-8 w-8 items-center justify-center rounded-lg">
                 <Code2 className="h-4 w-4 text-sidebar-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold text-sidebar-accent-foreground font-display hidden sm:inline">
-                ByteBin
+              </div> */}
+              <span className="text-4xl font-bold text-sidebar-accent-foreground font-display hidden sm:inline">
+                byte<span className=" text-violet-600">Bin</span>
               </span>
 
               {/* Mobile Menu Button */}
@@ -65,7 +65,7 @@ const AppSidebar = () => {
                     key={item.to}
                     to={item.to}
                     className={cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                      "flex items-center gap-2 rounded-lg px-3 py-2 text-lg font-medium transition-colors",
                       active
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -83,7 +83,7 @@ const AppSidebar = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-lg font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Logout</span>

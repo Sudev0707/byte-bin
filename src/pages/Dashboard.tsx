@@ -29,28 +29,28 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in  max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold font-display">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Welcome back! Here's your progress overview.</p>
         </div>
-        <Link to="/add">
-          <Button>
+        <Button asChild>
+          <Link to="/add">
             <Plus className="mr-2 h-4 w-4" /> Add Problem
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         {cards.map((c) => (
-          <Card key={c.title} className="bg-sidebar" >
+          <Card key={c.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">{c.title}</CardTitle>
               <c.icon className={`h-5 w-5 ${c.color}`} />
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold font-display text-slate-100">{c.value}</p>
+              <p className="text-3xl font-bold font-display">{c.value}</p>
             </CardContent>
           </Card>
         ))}
@@ -72,11 +72,7 @@ const Dashboard = () => {
                 <Link
                   key={p.id}
                   to={`/problem/${p.id}`}
-                  className={`flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors  ${
-                    p.difficulty === "Easy" ? "bg-accent" :
-                    p.difficulty === "Medium" ? "bg-secondary" :
-                    "bg-destructive/10"
-                  }  `}
+                  className={` flex items-center justify-between rounded-lg border border-gray-300 p-3 hover:bg-muted/50 transition-colors`}
                 >
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold truncate">{p.title}</p>

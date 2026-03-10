@@ -70,7 +70,7 @@
     --popover: 220 20% 10%;
     --popover-foreground: 220 10% 90%;
 
-    --primary: 172 66% 50%;
+    --primary:270 80% 40%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 20% 16%;
@@ -113,6 +113,7 @@
 @layer utilities {
   /* Vibrant Highlight Colors - CSS Variables */
   :root {
+    --highlight-primary: 172 66% 40%;
     --highlight-pink: 330 81% 65%;
     --highlight-purple: 265 83% 65%;
     --highlight-blue: 217 91% 60%;
@@ -131,6 +132,9 @@
   }
 
   /* Text Highlight Colors */
+  .text-highlight-primary {
+    color: hsl(172 66% 40%);
+  }
   .text-highlight-pink {
     color: hsl(330 81% 65%);
   }
@@ -157,6 +161,9 @@
   }
 
   /* Background Highlight Colors */
+  .bg-highlight-primary {
+    background-color: hsl(172 66% 40%);
+  }
   .bg-highlight-pink {
     background-color: hsl(330 81% 65%);
   }

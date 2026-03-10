@@ -53,11 +53,11 @@ const ProblemDetail = () => {
         </Button>
 
         <div className="flex gap-2">
-          <Link to={`/edit/${problem.id}`}>
-            <Button variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/edit/${problem.id}`}>
               <Edit className="mr-2 h-4 w-4" /> Edit
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <Button variant="destructive" size="sm" onClick={handleDelete}>
             <Trash2 className="mr-2 h-4 w-4" /> Delete
           </Button>

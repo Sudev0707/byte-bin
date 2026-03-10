@@ -13,6 +13,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const ProblemList = () => {
   const [problems, setProblems] = useState(getProblems());
@@ -52,7 +60,7 @@ const ProblemList = () => {
   };
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-5 animate-fade-in max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold font-display">Problem List</h1>
         <div className="flex gap-2">
@@ -71,16 +79,18 @@ const ProblemList = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link to="/add">
-            <Button size="sm"><Plus className="mr-2 h-4 w-4" /> Add</Button>
-          </Link>
+          <Button asChild size="sm">
+            <Link to="/add">
+              <Plus className="mr-2 h-4 w-4" /> Add
+            </Link>
+          </Button>
         </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-5">
+      <div>
+        {/* <CardContent className="pt-0"> */}
           <div className="flex flex-row gap-3">
-            <div className="relative">
+            <div className="relative w-2/6">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-9"
@@ -124,8 +134,8 @@ const ProblemList = () => {
               </Select>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        {/* </CardContent> */}
+      </div>
 
       {filtered.length === 0 ? (
         <Card>
@@ -134,45 +144,56 @@ const ProblemList = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3">
-          {filtered.map((p) => (
-            <Card key={p.id} className="hover:border-primary/30 transition-colors">
-              <CardContent className="flex items-center gap-4 py-4">
-                <div className="flex-1 min-w-0">
-                  <Link to={`/problem/${p.id}`} className="font-medium hover:text-primary transition-colors truncate block">
-                    {p.title}
-                  </Link>
-                  {p.description && (
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                      {p.description}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {p.topic} · {p.language} · {p.dateAdded}
-                  </p>
-                </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  p.difficulty === "Easy" ? "bg-accent text-accent-foreground" :
-                  p.difficulty === "Medium" ? "bg-secondary text-secondary-foreground" :
-                  "bg-destructive/10 text-destructive"
-                }`}>
-                  {p.difficulty}
-                </span>
-                <div className="flex gap-1 shrink-0">
-                  <Link to={`/problem/${p.id}`}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
-                  </Link>
-                  <Link to={`/edit/${p.id}`}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Edit className="h-4 w-4" /></Button>
-                  </Link>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(p.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[50%]">Title</TableHead>
+                <TableHead className="">Topic</TableHead>
+                <TableHead className="">Level</TableHead>
+                <TableHead className="">Difficulty</TableHead>
+                <TableHead className="">Date</TableHead>
+                <TableHead className="">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">
+                    <Link to={`/problem/${p.id}`} className="hover:text-primary transition-colors">
+                      {p.title}
+                    </Link>  
+                  </TableCell>
+                  <TableCell>{p.topic}</TableCell>
+                  <TableCell>{p.language}</TableCell>
+                  <TableCell>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      p.difficulty === "Easy" ? "bg-accent text-accent-foreground" :
+                      p.difficulty === "Medium" ? "bg-secondary text-secondary-foreground" :
+                      "bg-destructive/10 text-destructive"
+                    }`}>
+                      {p.difficulty}
+                    </span>
+                  </TableCell>
+                  <TableCell>{p.dateAdded}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Link to={`/problem/${p.id}`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
+                      </Link>
+                      <Link to={`/edit/${p.id}`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><Edit className="h-4 w-4" /></Button>
+                      </Link>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(p.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
     </div>
   );

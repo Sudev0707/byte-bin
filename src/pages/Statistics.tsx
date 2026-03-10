@@ -53,7 +53,7 @@ const Statistics = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold font-display">Statistics</h1>
 
       <div className="grid gap-6 lg:grid-cols-2">

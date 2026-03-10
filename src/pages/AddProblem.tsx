@@ -140,7 +140,7 @@ const AddProblem = () => {
   };
 
   return (
-    <div className="max-w-8xl mx-auto animate-fade-in">
+    <div className="max-w-7xl mx-auto animate-fade-in">
       <div className="flex flex-row justify-between">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
