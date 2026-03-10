@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import Login from "@/pages/Login";
+import SignUp from "@/pages/SignUp";
 import Dashboard from "@/pages/Dashboard";
 import AddProblem from "@/pages/AddProblem";
 import ProblemList from "@/pages/ProblemList";
@@ -50,6 +51,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/sign-up" element={<SignUp />} />
           <Route path="/" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
           <Route path="/add" element={<ProtectedLayout><AddProblem /></ProtectedLayout>} />
           <Route path="/edit/:id" element={<ProtectedLayout><AddProblem /></ProtectedLayout>} />

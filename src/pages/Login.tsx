@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { SignIn } from "@clerk/clerk-react";
+import { SignIn, SignUp  } from "@clerk/clerk-react";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -40,12 +40,13 @@ const Login = () => {
     }
   };
 
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center space-y-3 pb-2">
-          <h1 className="text-4xl font-bold font-display">byte<span className="text-violet-600" >Bin</span></h1>
-          <p className="text-sm text-muted-foreground">Track your coding problems & solutions</p>
+          <h1 className="text-4xl font-bold font-display mb-5 ">byte<span className="text-violet-600" >Bin</span></h1>
+          {/* <p className="text-sm text-muted-foreground">Track your coding problems & solutions</p> */}
         </CardHeader>
         <CardContent>
           {/* Clerk SignIn with OAuth */}
@@ -55,22 +56,23 @@ const Login = () => {
               appearance={{
                 elements: {
                   rootBox: "w-full",
-                  card: "shadow-none border-none bg-transparent",
-                  formButtonPrimary: "bg-violet-600 hover:bg-violet-700",
-                  dividerRow: "bg-muted",
+                  // card: "shadow-none border-none bg-transparent",
+                  // card: "bg-card shadow-none ",
+                  formButtonPrimary: "bg-violet-700 hover:bg-violet-700",
+                  // dividerRow: "bg-muted",
                   dividerText: "text-muted-foreground",
-                  formFieldInput: "bg-background border-input",
-                  footerActionLink: "text-violet-600 hover:text-violet-700",
-                  identityPreviewText: "text-foreground",
+                  formFieldInput: " border-input",
+                  footerActionLink: "text-violet-900 hover:text-violet-700",
+                  identityPreviewText: "text-",
                   identityPreviewEditButton: "text-violet-600",
-                  formFieldLabel: "text-foreground",
+                  formFieldLabel: "text-black",
                   formFieldInputShowPasswordButton: "text-muted-foreground",
-                  otpCodeFieldInput: "bg-background border-input",
+                  otpCodeFieldInput: " border-input",
                   formFieldErrorText: "text-destructive",
                   // OAuth button styling
-                  socialButtonsBlockButton: "border-input bg-background hover:bg-accent hover:text-accent-foreground",
-                  socialButtonsBlockButtonText: "text-foreground",
-                  socialButtonsBlockButtonArrow: "text-muted-foreground",
+                  socialButtonsBlockButton: "border-input  hover:bg-accent hover:text-accent-foreground",
+                 socialButtonsBlockButtonText: "text-black",
+socialButtonsBlockButtonArrow: "text-gray-900",
                 },
                 layout: {
                   socialButtonsVariant: "blockButton",
@@ -78,7 +80,7 @@ const Login = () => {
                 },
               }}
               forceRedirectUrl="/"
-              signUpUrl="/login"
+              signUpUrl="/sign-up"
             />
           </div>
           
