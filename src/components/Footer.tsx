@@ -8,7 +8,7 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-  { icon: Github, href: "https://github.com", label: "GitHub" },
+  { icon: Github, href: "https://github.com/Sudev0707/byte-bin", label: "GitHub" },
 //   { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
 ];
 

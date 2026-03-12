@@ -24,6 +24,8 @@ import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 const TOPICS = [
+  "Conditional",
+  "Looping",
   "Array",
   "Strings",
   "DP",
