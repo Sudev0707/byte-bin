@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { SignIn, SignUp  } from "@clerk/clerk-react";
+import { SignIn, SignUp } from "@clerk/clerk-react";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -20,11 +20,11 @@ const Login = () => {
   // Redirect to dashboard if already signed in
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
-      setSession({ 
-        isLoggedIn: true, 
+      setSession({
+        isLoggedIn: true,
         username: user.username || user.fullName || user.firstName || "User",
         email: user.primaryEmailAddress?.emailAddress || "",
-        imageUrl: user.imageUrl
+        imageUrl: user.imageUrl,
       });
       navigate("/");
     }
@@ -40,18 +40,19 @@ const Login = () => {
     }
   };
 
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center space-y-3 pb-2">
-          <h1 className="text-4xl font-bold font-display mb-5 ">byte<span className="text-violet-600" >Bin</span></h1>
+          <h1 className="text-4xl font-bold font-display mb-5 ">
+            byte<span className="text-violet-600">Bin</span>
+          </h1>
           {/* <p className="text-sm text-muted-foreground">Track your coding problems & solutions</p> */}
         </CardHeader>
         <CardContent>
           {/* Clerk SignIn with OAuth */}
           <div className="mb-6">
-            <SignIn 
+            <SignIn
               routing="hash"
               appearance={{
                 elements: {
@@ -70,9 +71,10 @@ const Login = () => {
                   otpCodeFieldInput: " border-input",
                   formFieldErrorText: "text-destructive",
                   // OAuth button styling
-                  socialButtonsBlockButton: "border-input  hover:bg-accent hover:text-accent-foreground",
-                 socialButtonsBlockButtonText: "text-black",
-socialButtonsBlockButtonArrow: "text-gray-900",
+                  socialButtonsBlockButton:
+                    "border-input  hover:bg-accent hover:text-accent-foreground",
+                  socialButtonsBlockButtonText: "text-black",
+                  socialButtonsBlockButtonArrow: "text-gray-900",
                 },
                 layout: {
                   socialButtonsVariant: "blockButton",
@@ -83,7 +85,7 @@ socialButtonsBlockButtonArrow: "text-gray-900",
               signUpUrl="/sign-up"
             />
           </div>
-          
+
           {/* <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
