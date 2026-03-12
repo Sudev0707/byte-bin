@@ -1,0 +1,15 @@
+
+1️⃣ Create Model (MongoDB) (adding, removing, ...)
+2️⃣ Create API Route
+3️⃣ Connect Route to Server
+4️⃣ Send Form Data from React
+
+
+
+POST   /api/
+GET    /api/problems        → get all problems
+PUT    /api/problems/:id    → update problem
+DELETE /api/problems/:id    → delete problem
+GET    /api/problems/stats  → solved stats
+
+A Model is basically a class used to interact with a MongoDB collection.
