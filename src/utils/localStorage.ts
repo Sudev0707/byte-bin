@@ -12,6 +12,7 @@ export interface Problem {
   topic: string;
   language: string;
   difficulty: "Easy" | "Medium" | "Hard";
+  code?: string;
   solutions: Solution[];
   notes: string;
   references: string[];
