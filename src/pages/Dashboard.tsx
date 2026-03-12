@@ -2,6 +2,14 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { getProblems } from "@/utils/localStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Plus, Code2, CalendarCheck, CalendarDays, BookOpen } from "lucide-react";
 import { format, isToday, isThisMonth } from "date-fns";
@@ -67,27 +75,45 @@ const Dashboard = () => {
               <p>No problems added yet. Start tracking!</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {recentProblems.map((p) => (
-                <Link
-                  key={p.id}
-                  to={`/problem/${p.id}`}
-                  className={` flex items-center justify-between rounded-lg border border-gray-300 p-3 hover:bg-muted/50 transition-colors`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold truncate">{p.title}</p>
-                    <p className="text-xs text-muted-foreground">{p.topic} · {p.language}</p>
-                  </div>
-                  <span className={`ml-3 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                    p.difficulty === "Easy" ? "bg-accent text-accent-foreground" :
-                    p.difficulty === "Medium" ? "bg-secondary text-secondary-foreground" :
-                    "bg-destructive/10 text-destructive"
-                  }`}>
-                    {p.difficulty}
-                  </span>
-                </Link>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[300px]">Title</TableHead>
+                  <TableHead>Topic</TableHead>
+                  <TableHead>Language</TableHead>
+                  <TableHead>Difficulty</TableHead>
+                  <TableHead className="w-[120px] text-right">Added</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentProblems.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium max-w-[300px]">
+                      <Link 
+                        to={`/problem/${p.id}`} 
+                        className="line-clamp-1 hover:text-primary transition-colors block"
+                      >
+                        {p.title}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{p.topic}</TableCell>
+                    <TableCell>{p.language}</TableCell>
+                    <TableCell>
+                      <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        p.difficulty === "Easy" ? "bg-accent text-accent-foreground" :
+                        p.difficulty === "Medium" ? "bg-secondary text-secondary-foreground" :
+                        "bg-destructive/10 text-destructive"
+                      }`}>
+                        {p.difficulty}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground text-right">
+                      {p.dateAdded}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

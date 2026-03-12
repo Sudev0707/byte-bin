@@ -7,6 +7,7 @@ const connectDB = require("./config/db");
 
 // Routes
 const addProblemRoutes = require("./routes/addProblemRoute");
+const getProblemRoutes = require("./routes/getProblemRoute")
 
 const app = express();
 
@@ -19,6 +20,7 @@ const startServer = async () => {
     await connectDB();
     // Routes
     app.use("/api/problems", addProblemRoutes);
+    app.use("/api/problems", getProblemRoutes);
 
     app.get("/", (req, res) => {
       res.send("Backend running");
