@@ -16,7 +16,7 @@ interface CodeEditorProps {
 
 const languageMap: Record<string, any> = {
   javascript: javascript(),
-  "javascript": javascript(),
+  // "javascript": javascript(),
   js: javascript(),
   typescript: javascript({ typescript: true }),
   ts: javascript({ typescript: true }),
