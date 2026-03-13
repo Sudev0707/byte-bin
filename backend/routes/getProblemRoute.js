@@ -20,4 +20,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const problem = await Problem.findById(id);
+    if (!problem) {
+      return res.status(404).json({ error: "Problem not found" });
+    }
+    const problemWithId = {
+      ...problem.toObject(),
+      id: problem._id.toString(),
+    };
+    res.status(200).json(problemWithId);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
