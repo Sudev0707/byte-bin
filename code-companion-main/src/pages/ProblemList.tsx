@@ -6,6 +6,7 @@ import {
   deleteProblem,
   exportToJSON,
   exportToCSV,
+  saveProblems,
 } from "@/utils/localStorage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,7 @@ const ProblemList = () => {
         // console.log("resulttt", res.data);
 
         setProblems(res.data || getProblems());
+        saveProblems(res.data || []);
       } catch (err) {
         console.error(err);
       }
@@ -95,8 +97,8 @@ const ProblemList = () => {
     });
 
     result.sort((a, b) => {
-      if (sortBy === "date-desc") return b.dateAdded.localeCompare(a.dateAdded);
-      if (sortBy === "date-asc") return a.dateAdded.localeCompare(b.dateAdded);
+      if (sortBy === "date-desc") return b.dateAdded?.(a.dateAdded);
+      if (sortBy === "date-asc") return a.dateAdded?.(b.dateAdded);
       const order = { Easy: 1, Medium: 2, Hard: 3 };
       if (sortBy === "diff-asc")
         return order[a.difficulty] - order[b.difficulty];
@@ -239,6 +241,7 @@ const ProblemList = () => {
                   <TableCell className="font-medium">
                     <Link
                       to={`/problem/${p.id}`}
+                      state={{ problem: p }}
                       className="hover:text-primary transition-colors"
                     >
                       {p.title}
@@ -265,7 +268,7 @@ const ProblemList = () => {
                   <TableCell>{p.dateAdded}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Link to={`/problem/${p.id}`}>
+                      <Link to={`/problem/${p.id}`} state={{ problem: p }}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -288,7 +291,7 @@ const ProblemList = () => {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="text-xs" >ID: {p.id}</p>
+                            <p className="text-xs">ID: {p.id}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

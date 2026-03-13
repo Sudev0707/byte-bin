@@ -143,7 +143,7 @@ const Dashboard = () => {
               <TableBody>
                 {recentProblems.map((p) => (
                   <TableRow key={p.id} className="text-sm " >
-                    <TableCell className="font-medium max-w-[300px]">
+                    <TableCell className="font-medium text-lg max-w-[300px]">
                       <Link
                         to={`/problem/${p.id}`}
                         className="line-clamp-1 hover:text-primary transition-colors block"

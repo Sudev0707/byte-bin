@@ -17,6 +17,7 @@ export interface Problem {
   notes: string;
   references: string[];
   dateAdded: string;
+  createdAt?: string;
 }
 
 export interface Session {
@@ -96,6 +97,11 @@ export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
+export const getProblem = (id: string): Problem | null => {
+  return getProblems().find((p) => p.id === id) || null;
+};
+
+
 export const exportToJSON = (problems: Problem[]) => {
   const blob = new Blob([JSON.stringify(problems, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -104,6 +110,10 @@ export const exportToJSON = (problems: Problem[]) => {
   a.download = "coding-problems.json";
   a.click();
   URL.revokeObjectURL(url);
+};
+
+export const saveProblems = (problems: Problem[]): void => {
+  localStorage.setItem(PROBLEMS_KEY, JSON.stringify(problems.map(migrateProblem)));
 };
 
 export const exportToCSV = (problems: Problem[]) => {
