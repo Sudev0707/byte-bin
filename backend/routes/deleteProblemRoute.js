@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const Problem = require("../models/Problem");
+const Problem = require("../models/AddProblems");
 
 router.delete("/:id", async (req, res) => {
 
     try {
-        const deleteProblem = await findByIdAndDelete(req.params.id);
+        const deleteProblem = await Problem.findByIdAndDelete(req.params.id);
         if (!deleteProblem) {
             return res.status(404).json({ message: "Problem not found" });
         }

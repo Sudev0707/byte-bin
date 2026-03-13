@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import {
@@ -44,12 +44,27 @@ import {
 } from "@/components/ui/table";
 
 const ProblemList = () => {
-  const [problems, setProblems] = useState(getProblems());
+  const [problems, setProblems] = useState([]);
   const [search, setSearch] = useState("");
   const [topicFilter, setTopicFilter] = useState("all");
   const [langFilter, setLangFilter] = useState("all");
   const [diffFilter, setDiffFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/problems");
+        console.log("resulttt", res.data);
+
+        setProblems(res.data || getProblems());
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const topics = useMemo(
     () => [...new Set(problems.map((p) => p.topic))],
@@ -85,6 +100,8 @@ const ProblemList = () => {
   }, [problems, search, topicFilter, langFilter, diffFilter, sortBy]);
 
   const handleDelete = async (id: string) => {
+    console.log(id, "iidd");
+
     try {
       await axios.delete(`http://localhost:5000/api/problems/${id}`);
       console.log("Problem deleted");
@@ -218,6 +235,9 @@ const ProblemList = () => {
                       className="hover:text-primary transition-colors"
                     >
                       {p.title}
+                      {/* <span className="text-xs text-muted-foreground ml-2">
+                        ({p.id})
+                      </span> */}
                     </Link>
                   </TableCell>
                   <TableCell>{p.topic}</TableCell>
