@@ -1,0 +1,23 @@
+ByteBin - Full-Stack Coding Problem Companion Platform
+
+Developed ByteBin, a modern MERN stack (MongoDB, Express.js, React, Node.js) web application designed as a personal coding problem tracker and analytics dashboard for software engineers. This platform empowers developers to capture, organize, revisit, and analyze their coding challenges, solutions, and learnings – streamlining LeetCode/HackerRank-style problem tracking with professional-grade features.
+
+Key Features & Implementations:
+• Comprehensive CRUD operations for coding problems with rich schema (title, topic, language, difficulty, description, notes, syntax-highlighted code, multiple solutions, references)
+• Interactive Dashboard: Real-time stats (total/daily/monthly problems), recent problems overview
+• Advanced Problem Management: Search/filter/export (JSON/CSV), detailed views with edit/delete
+• Analytics Dashboard: Visual charts for topics, languages, difficulties, trends using Recharts
+• Responsive, accessible UI: Mobile-first design with sidebar navigation, dark mode support
+• Secure Authentication & Authorization via Clerk (third-party SaaS)
+• Syntax-highlighted code editor integrated with CodeMirror (support for JavaScript, Python, Java, C++)
+• Form handling with React Hook Form + Zod schema validation + Tanstack Query for optimistic updates/caching
+
+Tech Stack Highlights:
+Frontend: React 18 + TypeScript, Vite, Tailwind CSS, shadcn/ui (50+ components), Radix UI primitives, React Router v6, Axios, Lucide React icons
+Backend: Node.js/Express RESTful APIs, MongoDB/Mongoose ODM, dotenv for env management
+DevOps: ESLint, Vitest unit testing, Nodemon, CORS handling
+Third-Party Integrations: Clerk (auth), CodeMirror (editor), Recharts (data viz), Sonner (toasts), React Hook Form/Zod (forms)
+
+Impact: Built scalable, production-ready app with 100% TypeScript, responsive design (Tailwind/shadcn), performant data fetching (Tanstack Query), and intuitive UX. Demonstrates full-stack expertise in modern JavaScript ecosystem, database design, API development, state management, and UI/UX best practices.
+
+Keywords: Full-Stack Development | MERN Stack | REST APIs | Authentication (Clerk) | Data Visualization (Recharts) | TypeScript | Responsive Design | CRUD Applications | MongoDB | React Ecosystem | Code Editor Integration | Analytics Dashboard | Agile Development | Performance Optimization | Accessible UI (ARIA/WAI)
