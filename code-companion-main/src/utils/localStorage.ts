@@ -1,6 +1,7 @@
 export interface Solution {
-  id: string;
-  title: string;
+  id?: string;
+  _id?: string;
+  title?: string;
   code: string;
   language: string;
 }

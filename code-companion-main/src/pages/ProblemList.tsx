@@ -109,7 +109,7 @@ const ProblemList = () => {
   }, [problems, search, topicFilter, langFilter, diffFilter, sortBy]);
 
   const handleDelete = async (id: string) => {
-    console.log(id, "iidd");
+    // console.log(id, "iidd");
 
     try {
       await axios.delete(`http://localhost:5000/api/problems/${id}`);

@@ -208,7 +208,7 @@ const AddProblem = () => {
       dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
     };
 
-    console.log('problemData', problemData);
+    // console.log('problemData', problemData);
 
     const problem: Problem = {
       ...problemData,
