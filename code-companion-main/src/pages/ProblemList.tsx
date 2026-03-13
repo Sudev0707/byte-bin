@@ -35,6 +35,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+import {
   Table,
   TableBody,
   TableCell,
@@ -55,7 +62,7 @@ const ProblemList = () => {
     const fetchData = async () => {
       try {
         const res = await axios.get("http://localhost:5000/api/problems");
-        console.log("resulttt", res.data);
+        // console.log("resulttt", res.data);
 
         setProblems(res.data || getProblems());
       } catch (err) {
@@ -268,14 +275,23 @@ const ProblemList = () => {
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive"
-                        onClick={() => handleDelete(p.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                              onClick={() => handleDelete(p.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs" >ID: {p.id}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                 </TableRow>
