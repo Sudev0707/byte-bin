@@ -22,7 +22,9 @@ backend/coverage/
 bytebin-client/node_modules/
 bytebin-client/dist/
 bytebin-client/build/
+bytebin-client/.env
 bytebin-client/.env*.local
+
 
 # Build outputs
 dist/
