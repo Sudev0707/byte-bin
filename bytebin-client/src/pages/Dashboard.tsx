@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { getProblems } from "@/utils/localStorage";
+import { getProblems, saveProblem } from "@/utils/localStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -28,20 +28,33 @@ const Dashboard = () => {
 
   const [problems, setProblems] = useState([]);
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axiosInstance.get(`/problems`);
-        console.log('Fetched problems:', res.data);
+  const loadProblems = async () => {
+    try {
+      // 1️⃣ Load cached data first
+      const cachedProblems = getProblems();
 
-        setProblems(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error('Failed to fetch problems:', err);
-        setProblems([]);
+      if (cachedProblems.length) {
+        // const parsed = JSON.parse(cachedProblems);
+        setProblems(cachedProblems);
       }
-    };
 
-    fetchData();
-  }, []);
+      // 2️⃣ Always check API for latest data
+      const res = await axiosInstance.get("/problems");
+      const apiData = Array.isArray(res.data) ? res.data : [];
+
+      // 3️⃣ Update only if data changed
+      if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
+        setProblems(apiData);
+        saveProblem(apiData)
+      }
+
+    } catch (err) {
+      console.error("Error loading problems:", err);
+    }
+  };
+
+  loadProblems();
+}, []);
 
   const stats = useMemo(() => {
     const total = problems.length;

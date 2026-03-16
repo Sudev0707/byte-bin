@@ -81,7 +81,35 @@ const ProblemList = () => {
   // }, []);
 
   // 
-  
+  useEffect(() => {
+  const loadProblems = async () => {
+    try {
+      // 1️⃣ Load cached data first
+      const cachedProblems = getProblems();
+
+      if (cachedProblems.length) {
+        // const parsed = JSON.parse(cachedProblems);
+        setProblems(cachedProblems);
+      }
+
+      // 2️⃣ Always check API for latest data
+      const res = await axiosInstance.get("/problems");
+      const apiData = Array.isArray(res.data) ? res.data : [];
+
+      // 3️⃣ Update only if data changed
+      if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
+        setProblems(apiData);
+        // saveProblems(apiData)
+      }
+
+    } catch (err) {
+      console.error("Error loading problems:", err);
+    }
+  };
+
+  loadProblems();
+}, []);
+
 
   const topics = useMemo(
     () => [...new Set(problems.map((p) => p.topic))],
