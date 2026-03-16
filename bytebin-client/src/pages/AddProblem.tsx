@@ -24,6 +24,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { addSeconds } from "date-fns";
+import { axiosInstance } from "../api/axios.js"
 
 const TOPICS = [
   "Conditional",
@@ -126,10 +127,7 @@ const AddProblem = () => {
     const submitToBackend = async (problemData: any) => {
     try {
       console.log("Attempting backend submit...");
-      const res = await axios.post(
-        "http://localhost:5000/api/problems/add",
-        problemData,
-      );
+      const res = await axiosInstance.post("/problems/add", problemData);
       console.log("Backend saved successfully:", res.data);
       toast.success("Saved to backend!");
       return res.data;

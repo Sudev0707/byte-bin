@@ -50,6 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { axiosInstance } from "../api/axios.js";
 
 const ProblemList = () => {
   const [problems, setProblems] = useState([]);
@@ -58,22 +59,29 @@ const ProblemList = () => {
   const [langFilter, setLangFilter] = useState("all");
   const [diffFilter, setDiffFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get("http://localhost:5000/api/problems");
-        // console.log("resulttt", res.data);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const res = await axiosInstance.get("/problems");
 
-        setProblems(res.data || getProblems());
-        saveProblems(res.data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  //       const problemsData = Array.isArray(res.data) ? res.data : [];
 
-    fetchData();
-  }, []);
+  //       setProblems(problemsData);
+  //       saveProblems(problemsData);
+  //       setLoading(false);
+  //     } catch (err) {
+  //       console.error("API error:", err);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+
+  // 
+  
 
   const topics = useMemo(
     () => [...new Set(problems.map((p) => p.topic))],
@@ -147,71 +155,73 @@ const ProblemList = () => {
         </div>
       </div>
 
-      <div>
-        {/* <CardContent className="pt-0"> */}
-        <div className="flex flex-row gap-3">
-          <div className="relative w-2/6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              className="pl-9"
-              placeholder="Search by title or notes..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      {/* <div className="border-4 p-2"> */}
+      <Card>
+        <CardContent className="p-2">
+          <div className="flex flex-row gap-3">
+            <div className="relative w-2/6">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="pl-9"
+                placeholder="Search by title or notes..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+              <Select value={topicFilter} onValueChange={setTopicFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Topic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Topics</SelectItem>
+                  {topics.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={langFilter} onValueChange={setLangFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Languages</SelectItem>
+                  {languages.map((l) => (
+                    <SelectItem key={l} value={l}>
+                      {l}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={diffFilter} onValueChange={setDiffFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="Easy">Easy</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date-desc">Newest First</SelectItem>
+                  <SelectItem value="date-asc">Oldest First</SelectItem>
+                  <SelectItem value="diff-asc">Easiest First</SelectItem>
+                  <SelectItem value="diff-desc">Hardest First</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
-            <Select value={topicFilter} onValueChange={setTopicFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Topic" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Topics</SelectItem>
-                {topics.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={langFilter} onValueChange={setLangFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Languages</SelectItem>
-                {languages.map((l) => (
-                  <SelectItem key={l} value={l}>
-                    {l}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={diffFilter} onValueChange={setDiffFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Difficulty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                <SelectItem value="Easy">Easy</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Hard">Hard</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">Newest First</SelectItem>
-                <SelectItem value="date-asc">Oldest First</SelectItem>
-                <SelectItem value="diff-asc">Easiest First</SelectItem>
-                <SelectItem value="diff-desc">Hardest First</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        {/* </CardContent> */}
-      </div>
+        </CardContent>
+      </Card>
+      {/* </div> */}
 
       {filtered.length === 0 ? (
         <Card>

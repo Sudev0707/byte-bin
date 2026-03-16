@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { format, isToday, isThisMonth } from "date-fns";
 import { log } from "node:console";
+import {axiosInstance} from "../api/axios.js"
 
 const Dashboard = () => {
   // const problems = getProblems();
@@ -29,12 +30,13 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/problems");
-        // console.log("resulttt", res.data);
+        const res = await axiosInstance.get(`/problems`);
+        console.log('Fetched problems:', res.data);
 
-        setProblems(res.data || getProblems());
+        setProblems(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to fetch problems:', err);
+        setProblems([]);
       }
     };
 
