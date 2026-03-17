@@ -98,9 +98,9 @@ Base: `http://localhost:5000/api`
 
 ## 📱 Screenshots
 <!-- Add screenshots here -->
-| Dashboard | Problem List | Add Problem |
-|-----------|--------------|-------------|
-| ![Dashboard](bytebin-client/public/image1.png) | ![Problems](bytebin-client/public/image2.png) | ![Add](bytebin-client/public/image3.png) | ![Add](bytebin-client/public/image4.png)
+| Authentication | Problem List | View Problem | View Chart
+|-----------|--------------|-------------|-------------|
+| ![Auth](bytebin-client/public/image1.png) | ![Problems](bytebin-client/public/image2.png) | ![Add](bytebin-client/public/image3.png) | ![Chart](bytebin-client/public/image4.png)
 
 ## ☁️ Deployment
 - **Frontend**: Vercel (`vercel --prod`) or Cloudflare Pages (static-friendly).
