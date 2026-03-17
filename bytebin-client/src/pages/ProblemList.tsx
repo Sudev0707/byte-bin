@@ -1,13 +1,11 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import {
-  getProblems,
   deleteProblem,
   exportToJSON,
   exportToCSV,
-  saveProblems,
 } from "@/utils/localStorage";
+import { useProblems } from "@/context/ProblemsContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,63 +51,14 @@ import {
 import { axiosInstance } from "../api/axios.js";
 
 const ProblemList = () => {
-  const [problems, setProblems] = useState([]);
+  const { problems, refreshProblems } = useProblems();
   const [search, setSearch] = useState("");
   const [topicFilter, setTopicFilter] = useState("all");
   const [langFilter, setLangFilter] = useState("all");
   const [diffFilter, setDiffFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
-  const [loading, setLoading] = useState(false);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const res = await axiosInstance.get("/problems");
-
-  //       const problemsData = Array.isArray(res.data) ? res.data : [];
-
-  //       setProblems(problemsData);
-  //       saveProblems(problemsData);
-  //       setLoading(false);
-  //     } catch (err) {
-  //       console.error("API error:", err);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
-
-  // 
-  useEffect(() => {
-  const loadProblems = async () => {
-    try {
-      // 1️⃣ Load cached data first
-      const cachedProblems = getProblems();
-
-      if (cachedProblems.length) {
-        // const parsed = JSON.parse(cachedProblems);
-        setProblems(cachedProblems);
-      }
-
-      // 2️⃣ Always check API for latest data
-      const res = await axiosInstance.get("/problems");
-      const apiData = Array.isArray(res.data) ? res.data : [];
-
-      // 3️⃣ Update only if data changed
-      if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
-        setProblems(apiData);
-        // saveProblems(apiData)
-      }
-
-    } catch (err) {
-      console.error("Error loading problems:", err);
-    }
-  };
-
-  loadProblems();
-}, []);
-
+  // Load handled by context
 
   const topics = useMemo(
     () => [...new Set(problems.map((p) => p.topic))],
@@ -119,6 +68,12 @@ const ProblemList = () => {
     () => [...new Set(problems.map((p) => p.language))],
     [problems],
   );
+
+  const compareDates = (dateStr1: string, dateStr2: string): number => {
+    const d1 = new Date(dateStr1).getTime();
+    const d2 = new Date(dateStr2).getTime();
+    return isNaN(d2) ? 1 : isNaN(d1) ? -1 : d1 - d2;
+  };
 
   const filtered = useMemo(() => {
     let result = problems.filter((p) => {
@@ -133,23 +88,28 @@ const ProblemList = () => {
     });
 
     result.sort((a, b) => {
-      if (sortBy === "date-desc") return b.dateAdded?.(a.dateAdded);
-      if (sortBy === "date-asc") return a.dateAdded?.(b.dateAdded);
+      if (sortBy === "date-desc") {
+        return compareDates(b.dateAdded || "", a.dateAdded || "");
+      }
+      if (sortBy === "date-asc") {
+        return compareDates(a.dateAdded || "", b.dateAdded || "");
+      }
       const order = { Easy: 1, Medium: 2, Hard: 3 };
       if (sortBy === "diff-asc")
-        return order[a.difficulty] - order[b.difficulty];
-      return order[b.difficulty] - order[a.difficulty];
+        return (order[a.difficulty] || 0) - (order[b.difficulty] || 0);
+      return (order[b.difficulty] || 0) - (order[a.difficulty] || 0);
     });
 
     return result;
   }, [problems, search, topicFilter, langFilter, diffFilter, sortBy]);
 
   const handleDelete = async (id: string) => {
-    // console.log(id, "iidd");
+    console.log(id, "iidd");
 
     try {
-      await axios.delete(`http://localhost:5000/api/problems/${id}`);
-      console.log("Problem deleted");
+      await axiosInstance.delete(`/problems/${id}`);
+      await refreshProblems();
+      toast.success("Problem deleted");
     } catch (error) {
       console.error(error);
     }
@@ -283,9 +243,9 @@ const ProblemList = () => {
                       className="hover:text-primary transition-colors"
                     >
                       {p.title}
-                      {/* <span className="text-xs text-muted-foreground ml-2">
+                      <span className="text-xs text-muted-foreground ml-2">
                         ({p.id})
-                      </span> */}
+                      </span>
                     </Link>
                   </TableCell>
                   <TableCell>{p.topic}</TableCell>

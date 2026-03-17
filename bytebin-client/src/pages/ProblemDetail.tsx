@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getProblems, deleteProblem, type Problem } from "@/utils/localStorage";
+import { deleteProblem, type Problem } from "@/utils/localStorage";
+import { useProblems } from "@/context/ProblemsContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Edit, Trash2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { axiosInstance } from "../api/axios.js";
 
 const ProblemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { problems } = useProblems();
 
-  const problems = getProblems();
-  const problem: Problem | undefined = problems.find((p) => p.id === id || p._id === id);
-
+  const problem: Problem | undefined = problems.find((p) => p.id === id);
   const [activeTab, setActiveTab] = useState("");
 
   const solutions = problem?.solutions || [];
@@ -40,11 +41,24 @@ const ProblemDetail = () => {
     );
   }
 
-  const handleDelete = () => {
-    deleteProblem(problem._id);
-    toast.success("Problem deleted");
-    navigate("/problems");
+  const handleDelete = async (id: string) => {
+    console.log(id, "iidd");
+
+    try {
+      await axiosInstance.delete(`/problems/${id}`);
+      // deleteProblem(problem.id);
+      toast.success("Problem deleted");
+      // navigate("/problems");
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+  // const handleDelete = () => {
+  //   deleteProblem(problem._id);
+  //   toast.success("Problem deleted");
+  //   navigate("/problems");
+  // };
 
   const copyCode = (code) => {
     navigator.clipboard.writeText(code);
@@ -60,12 +74,16 @@ const ProblemDetail = () => {
 
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link to={`/edit/${problem._id}`}>
+            <Link to={`/edit/${problem.id}`}>
               <Edit className="mr-2 h-4 w-4" /> Edit
             </Link>
           </Button>
 
-          <Button variant="destructive" size="sm" onClick={handleDelete}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleDelete(id)}
+          >
             <Trash2 className="mr-2 h-4 w-4" /> Delete
           </Button>
         </div>
@@ -109,7 +127,8 @@ const ProblemDetail = () => {
               )}
 
               <p className="text-xs text-muted-foreground mt-2">
-                Added: {problem?.dateAdded || problem?.createdAt || "Unknown date"}
+                Added:{" "}
+                {problem?.dateAdded || problem?.createdAt || "Unknown date"}
               </p>
             </div>
           </Card>
@@ -159,9 +178,9 @@ const ProblemDetail = () => {
           {/* SOLUTIONS */}
           {solutions.length > 0 && (
             <Card>
-             
-                 <CardTitle className="text-md font-medium px-5 py-2">Solutions</CardTitle>
-           
+              <CardTitle className="text-md font-medium px-5 py-2">
+                Solutions
+              </CardTitle>
 
               <CardContent>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>

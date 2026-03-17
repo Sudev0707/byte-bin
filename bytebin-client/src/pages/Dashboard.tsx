@@ -3,14 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { getProblems, saveProblem } from "@/utils/localStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table,TableBody,TableCell,TableHead,TableHeader,TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -22,11 +15,16 @@ import {
 import { format, isToday, isThisMonth } from "date-fns";
 import { log } from "node:console";
 import {axiosInstance} from "../api/axios.js"
+import { useProblems } from "@/context/ProblemsContext";
+
 
 const Dashboard = () => {
   // const problems = getProblems();
 
   const [problems, setProblems] = useState([]);
+
+  
+    // const { problems, refreshProblems } = useProblems();
   useEffect(() => {
   const loadProblems = async () => {
     try {
@@ -41,6 +39,9 @@ const Dashboard = () => {
       // 2️⃣ Always check API for latest data
       const res = await axiosInstance.get("/problems");
       const apiData = Array.isArray(res.data) ? res.data : [];
+
+      console.log('apiData', apiData);
+      
 
       // 3️⃣ Update only if data changed
       if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
@@ -182,7 +183,7 @@ const Dashboard = () => {
                       </span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {p.createdAt.split("T")[0]}
+                      {p.dateAdded}
                     </TableCell>
                   </TableRow>
                 ))}
