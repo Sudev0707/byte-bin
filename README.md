@@ -112,8 +112,8 @@ See `bytebin-client/cloudflare-usage.txt` for Cloudflare guide.
 
 
 ## 👨‍💻 Author
-**Sudev Majhi** - Full Stack Developer  
-[Portfolio](https://sudevmajhi.vercel.app/) |
+**Sudev Majhi** - [Portfolio](https://sudevmajhi.vercel.app/) 
+
 ---
 
 ⭐ **Star this repo if it helps!** Questions? Open an issue.
