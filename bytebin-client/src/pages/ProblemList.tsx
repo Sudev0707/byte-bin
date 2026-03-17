@@ -250,10 +250,10 @@ const ProblemList = () => {
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         p.difficulty === "Easy"
-                          ? "bg-green-800 text-accent-foreground"
+                          ? "bg-secondary text-accent-foreground"
                           : p.difficulty === "Medium"
-                            ? "bg-orange-700 text-secondary-foreground"
-                            : "bg-red-800 text-secondary-foreground"
+                            ? "bg-secondary text-yellow-500"
+                            : "bg-secondary text-red-400"
                       }`}
                     >
                       {p.difficulty}

@@ -172,11 +172,11 @@ const Dashboard = () => {
                     <TableCell>
                       <span
                         className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          p.difficulty === "Easy"
-                            ? "bg-green-800 text-accent-foreground"
-                            : p.difficulty === "Medium"
-                              ? "bg-orange-700 text-secondary-foreground"
-                              : "bg-red-800 text-secondary-foreground"
+                         p.difficulty === "Easy"
+                          ? "bg-secondary text-accent-foreground"
+                          : p.difficulty === "Medium"
+                            ? "bg-secondary text-yellow-500"
+                            : "bg-secondary text-red-400"
                         }`}
                       >
                         {p.difficulty}
