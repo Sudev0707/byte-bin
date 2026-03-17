@@ -10,7 +10,13 @@ router.post("/add", async (req, res) => {
         const { title, description, topic, language, difficulty, notes, references, code, solutions } = req.body;
         const newProblem = new Problem({ title, description, topic, language, difficulty, notes, references, code, solutions });
         await newProblem.save();
-        res.status(201).json({ message: "Problem saved successfully", data: newProblem })
+        // 
+        const problemWithId = {
+            ...newProblem.toObject(),
+            id: newProblem._id.toString(),
+        };
+
+        res.status(201).json({ message: "Problem saved successfully", data: problemWithId })
 
     } catch (error) {
         res.status(500).json({ error: error.message });
