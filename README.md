@@ -1,4 +1,4 @@
-# ByteBin 🧠💻
+# ByteBin
 
 [![MERN](https://img.shields.io/badge/MERN-Stack-blue?logo=mongodb&logoColor=white)](https://mernjs.org/) [![React](https://img.shields.io/badge/React-18-green?logo=react&logoColor=white)](https://reactjs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white)](https://typescriptlang.org/) [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-cyan?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/) [![MongoDB](https://img.shields.io/badge/MongoDB-green?logo=mongodb&logoColor=white)](https://mongodb.com/)
 
@@ -9,24 +9,10 @@
   <br><em>Streamline your coding journey with ByteBin</em>
 </div>
 
-## 🧭 Table of Contents
-- [About](#about)
-- [✨ Key Features](#key-features)
-- [🛠️ Tech Stack](#tech-stack)
-- [📁 Project Structure](#project-structure)
-- [🚀 Quick Start](#quick-start)
-- [🔐 Authentication](#authentication)
-- [📊 API Endpoints](#api-endpoints)
-- [📱 Screenshots](#screenshots)
-- [☁️ Deployment](#deployment)
-- [🧪 Testing](#testing)
-- [🤝 Contributing](#contributing)
-- [📄 License](#license)
-- [👨‍💻 Author](#author)
 
 ## About
 ByteBin empowers developers to manage coding problems with:
-- Rich CRUD operations (title, topic, language, difficulty, description, notes, syntax-highlighted code, solutions, references).
+- Rich operations (title, topic, language, difficulty, description, notes, syntax-highlighted code, solutions, references).
 - Real-time dashboard stats (total/daily/monthly problems), recent activity.
 - Advanced search/filter/sort/export (JSON/CSV).
 - Analytics visualizations for topics, languages, difficulties, trends.
@@ -70,37 +56,6 @@ Built with 100% TypeScript for scalability and type safety. Demonstrates full-st
 | Utils | dotenv, CORS |
 | Dev | Nodemon |
 
-### Tools & DevOps
-- Build: Vite, Bun (optional for frontend deps)
-- Linting: ESLint
-- Testing: Vitest
-- Monitoring: Sentry (optional)
-
-## 📁 Project Structure
-```
-d:/MERN/code-companion-main/
-├── README.md                 # This file
-├── TODO.md                   # Task tracking
-├── backend/                  # Node/Express API
-│   ├── server.js            # Entry point
-│   ├── config/db.js         # MongoDB connection
-│   ├── models/AddProblems.js # Mongoose schema
-│   ├── controllers/         # Business logic
-│   └── routes/              # CRUD routes
-├── bytebin-client/          # React frontend
-│   ├── src/
-│   │   ├── pages/           # Dashboard, ProblemList, AddProblem, etc.
-│   │   ├── components/ui/   # shadcn/ui components
-│   │   ├── context/         # ProblemsContext
-│   │   └── hooks/           # Custom hooks
-│   ├── vite.config.ts
-│   └── package.json
-├── .gitignore
-├── aboutProject.txt         # Project metadata
-└── project-description.txt  # Detailed description
-```
-
-## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 18+
@@ -145,7 +100,7 @@ Base: `http://localhost:5000/api`
 <!-- Add screenshots here -->
 | Dashboard | Problem List | Add Problem |
 |-----------|--------------|-------------|
-| ![Dashboard](bytebin-client/public/dashboard.png) | ![Problems](bytebin-client/public/problems.png) | ![Add](bytebin-client/public/add-problem.png) |
+| ![Dashboard](bytebin-client/public/image1.png) | ![Problems](bytebin-client/public/image2.png) | ![Add](bytebin-client/public/image3.png) | ![Add](bytebin-client/public/image4.png)
 
 ## ☁️ Deployment
 - **Frontend**: Vercel (`vercel --prod`) or Cloudflare Pages (static-friendly).
@@ -155,24 +110,6 @@ Base: `http://localhost:5000/api`
 
 See `bytebin-client/cloudflare-usage.txt` for Cloudflare guide.
 
-## 🧪 Testing
-```bash
-# Frontend
-cd bytebin-client
-bun test  # or npm test
-```
-
-Backend: Add tests to `backend/package.json`.
-
-## 🤝 Contributing
-1. Fork repo.
-2. Create feature branch (`git checkout -b feature/amazing-feature`).
-3. Commit changes (`git commit -m 'Add amazing feature'`).
-4. Push (`git push origin feature/amazing-feature`).
-5. Open PR.
-
-## 📄 License
-ISC License (see `backend/package.json`).
 
 ## 👨‍💻 Author
 **Sudev Majhi** - Full Stack Developer  
