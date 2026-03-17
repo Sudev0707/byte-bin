@@ -173,10 +173,10 @@ const Dashboard = () => {
                       <span
                         className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           p.difficulty === "Easy"
-                            ? "bg-accent text-accent-foreground"
+                            ? "bg-green-800 text-accent-foreground"
                             : p.difficulty === "Medium"
-                              ? "bg-secondary text-secondary-foreground"
-                              : "bg-destructive/10 text-destructive"
+                              ? "bg-orange-700 text-secondary-foreground"
+                              : "bg-red-800 text-secondary-foreground"
                         }`}
                       >
                         {p.difficulty}

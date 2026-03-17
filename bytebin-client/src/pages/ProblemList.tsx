@@ -1,10 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import {
-  deleteProblem,
-  exportToJSON,
-  exportToCSV,
-} from "@/utils/localStorage";
+import { deleteProblem, exportToJSON, exportToCSV } from "@/utils/localStorage";
 import { useProblems } from "@/context/ProblemsContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -254,10 +250,10 @@ const ProblemList = () => {
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         p.difficulty === "Easy"
-                          ? "bg-accent text-accent-foreground"
+                          ? "bg-green-800 text-accent-foreground"
                           : p.difficulty === "Medium"
-                            ? "bg-secondary text-secondary-foreground"
-                            : "bg-destructive/10 text-destructive"
+                            ? "bg-orange-700 text-secondary-foreground"
+                            : "bg-red-800 text-secondary-foreground"
                       }`}
                     >
                       {p.difficulty}
