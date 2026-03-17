@@ -76,7 +76,8 @@ const Dashboard = () => {
     return { total, today, month };
   }, [problems]);
 
-  const recentProblems = problems.slice(-5).reverse();
+  // const recentProblems = problems.slice(-5).reverse();
+  const recentProblems = problems.reverse();
 
   const cards = [
     {
