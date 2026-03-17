@@ -113,8 +113,7 @@ See `bytebin-client/cloudflare-usage.txt` for Cloudflare guide.
 
 ## 👨‍💻 Author
 **Sudev Majhi** - Full Stack Developer  
-[Portfolio](https://your-portfolio-link) | [GitHub](https://github.com/yourusername) | [LinkedIn](https://linkedin.com/in/sudev-majhi)
-
+[Portfolio](https://sudevmajhi.vercel.app/) |
 ---
 
 ⭐ **Star this repo if it helps!** Questions? Open an issue.
