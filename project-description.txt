@@ -21,3 +21,6 @@ Third-Party Integrations: Clerk (auth), CodeMirror (editor), Recharts (data viz)
 Impact: Built scalable, production-ready app with 100% TypeScript, responsive design (Tailwind/shadcn), performant data fetching (Tanstack Query), and intuitive UX. Demonstrates full-stack expertise in modern JavaScript ecosystem, database design, API development, state management, and UI/UX best practices.
 
 Keywords: Full-Stack Development | MERN Stack | REST APIs | Authentication (Clerk) | Data Visualization (Recharts) | TypeScript | Responsive Design | CRUD Applications | MongoDB | React Ecosystem | Code Editor Integration | Analytics Dashboard | Agile Development | Performance Optimization | Accessible UI (ARIA/WAI)
+
+
+

@@ -26,6 +26,7 @@ export interface Session {
   username: string;
   email?: string;
   imageUrl?: string;
+  bio?: string;
 }
 
 const PROBLEMS_KEY = "problems";

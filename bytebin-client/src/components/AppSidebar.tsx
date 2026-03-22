@@ -1,24 +1,39 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearSession } from "@/utils/localStorage";
-import { useAuth, UserButton } from "@clerk/clerk-react";
+import { useAuth, useUser, UserButton } from "@clerk/clerk-react";
 import {
   Code2,
   LayoutDashboard,
   Plus,
   List,
   BarChart3,
+  User,
   LogOut,
   Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
   { label: "Add Problem", to: "/add", icon: Plus },
   { label: "Problem List", to: "/problems", icon: List },
   { label: "Statistics", to: "/statistics", icon: BarChart3 },
+  // { label: "Profile", to: "/profile", icon: User },
 ];
 
 const AppSidebar = () => {
@@ -26,6 +41,13 @@ const AppSidebar = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { signOut } = useAuth();
+  const { isLoaded, user } = useUser();
+
+  const getUserInitials = () => {
+    const firstName = user?.firstName?.[0]?.toUpperCase() || '';
+    const lastName = user?.lastName?.[0]?.toUpperCase() || '';
+    return firstName + lastName || 'U';
+  };
 
   const handleLogout = async () => {
     try {
@@ -89,21 +111,50 @@ const AppSidebar = () => {
 
           {/* User Menu & Logout Button */}
           <div className="flex items-center gap-2">
-            <UserButton 
-              afterSignOutUrl="/login"
-              appearance={{
-                elements: {
-                  avatarBox: "h-8 w-8"
-                }
-              }}
-            />
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-lg font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
+            {/* Profile Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                  size="icon"
+                >
+                  <Avatar className="h-8 w-8">
+                    {isLoaded && user?.imageUrl && (
+                      <AvatarImage src={user.imageUrl} />
+                    )}
+                    <AvatarFallback>
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {isLoaded ? user?.fullName || user?.username || 'User' : 'Loading...'}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {isLoaded ? user?.primaryEmailAddress?.emailAddress || 'No email' : ''}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>View Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="focus:bg-destructive focus:text-destructive-foreground"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

@@ -11,6 +11,7 @@ import AddProblem from "@/pages/AddProblem";
 import ProblemList from "@/pages/ProblemList";
 import ProblemDetail from "@/pages/ProblemDetail";
 import Statistics from "@/pages/Statistics";
+import Profile from "@/pages/Profile";
 import AppSidebar from "@/components/AppSidebar";
 import Footer from "@/components/Footer";
 import NotFound from "./pages/NotFound";
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/problems" element={<ProtectedLayout><ProblemList /></ProtectedLayout>} />
             <Route path="/problem/:id" element={<ProtectedLayout><ProblemDetail /></ProtectedLayout>} />
             <Route path="/statistics" element={<ProtectedLayout><Statistics /></ProtectedLayout>} />
+            <Route path="/profile" element={<ProtectedLayout><Profile /></ProtectedLayout>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
