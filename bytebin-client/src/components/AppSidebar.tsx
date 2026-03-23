@@ -10,15 +10,13 @@ import {
   User,
   LogOut,
   Menu,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,13 +38,16 @@ const AppSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const { signOut } = useAuth();
   const { isLoaded, user } = useUser();
 
   const getUserInitials = () => {
-    const firstName = user?.firstName?.[0]?.toUpperCase() || '';
-    const lastName = user?.lastName?.[0]?.toUpperCase() || '';
-    return firstName + lastName || 'U';
+    const firstName = user?.firstName?.[0]?.toUpperCase() || "";
+    const lastName = user?.lastName?.[0]?.toUpperCase() || "";
+    return firstName + lastName || "U";
   };
 
   const handleLogout = async () => {
@@ -59,6 +60,20 @@ const AppSidebar = () => {
     clearSession();
     navigate("/login");
   };
+
+  // Debounce effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (debouncedSearchTerm.length > 0) {
+      navigate(`/search?q=${encodeURIComponent(debouncedSearchTerm)}`);
+    }
+  }, [debouncedSearchTerm, navigate]);
 
   return (
     <>
@@ -95,7 +110,7 @@ const AppSidebar = () => {
                     key={item.to}
                     to={item.to}
                     className={cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2 text-lg font-medium transition-colors",
+                      "flex items-center gap-2 rounded-lg px-3 py-2 text-md font-medium transition-colors",
                       active
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -107,6 +122,24 @@ const AppSidebar = () => {
                 );
               })}
             </nav>
+
+            {/* Desktop Searchbar */}
+            <div className="flex-1 max-w-md hidden lg:flex">
+              <div className="relative w-full">
+                <Search className="absolute top-3 left-2 z-20 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="h-10 pl-10 border-slate-600 w-full bg-sidebar/80 backdrop-blur-sm  hover:border-sidebar-accent focus:border-sidebar-accent focus:ring-sidebar-accent text-sidebar-foreground placeholder-sidebar-muted-foreground transition-colors"
+                  placeholder="Search users & problems..."
+                  // name="search"
+                  autoComplete="off"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setIsTyping(true);
+                    setSearchTerm(e.target.value);
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* User Menu & Logout Button */}
@@ -133,15 +166,19 @@ const AppSidebar = () => {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {isLoaded ? user?.fullName || user?.username || 'User' : 'Loading...'}
+                      {isLoaded
+                        ? user?.fullName || user?.username || "User"
+                        : "Loading..."}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {isLoaded ? user?.primaryEmailAddress?.emailAddress || 'No email' : ''}
+                      {isLoaded
+                        ? user?.primaryEmailAddress?.emailAddress || "No email"
+                        : ""}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
                   <User className="mr-2 h-4 w-4" />
                   <span>View Profile</span>
                 </DropdownMenuItem>
@@ -162,6 +199,24 @@ const AppSidebar = () => {
         {mobileMenuOpen && (
           <div className="lg:hidden absolute top-14 left-0 right-0 bg-sidebar border-b border-sidebar-border shadow-lg">
             <nav className="flex flex-col px-3 py-2">
+              {/* Mobile Searchbar */}
+              <div className="mb-6 p-3 border-b border-sidebar-border">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    className="pl-10 h-11 w-full bg-sidebar/80 backdrop-blur-sm border-sidebar-border hover:border-sidebar-accent focus:border-sidebar-accent focus:ring-sidebar-accent text-sidebar-foreground placeholder-sidebar-muted-foreground transition-colors"
+                    placeholder="Search users & problems..."
+                    // name="search"
+                    autoComplete="off"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setIsTyping(true);
+                      setSearchTerm(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+
               {navItems.map((item) => {
                 const active = location.pathname === item.to;
                 return (

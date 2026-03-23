@@ -17,6 +17,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const { Clerk } = require('@clerk/backend');
+const usersRoutes = require("./routes/users");
+
+const clerkClient = new Clerk({ secretKey: process.env.CLERK_SECRET_KEY });
+
+global.clerkClient = clerkClient;
+
 const startServer = async () => {
   try {
     await connectDB();
@@ -25,6 +32,7 @@ const startServer = async () => {
     app.use("/api/problems", getProblemRoutes); // get
     app.use("/api/problems", deleteProblemRoute); // delete
     app.use("/api/problems", editProblemRoutes); // put
+    app.use("/api/users", usersRoutes);
 
     app.get("/", (req, res) => {
       res.send("Backend running");

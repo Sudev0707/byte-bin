@@ -11,9 +11,10 @@ import {
   CalendarCheck,
   CalendarDays,
   BookOpen,
+  User,
 } from "lucide-react";
 import { format, isToday, isThisMonth } from "date-fns";
-import { log } from "node:console";
+
 import {axiosInstance} from "../api/axios.js"
 import { useProblems } from "@/context/ProblemsContext";
 
@@ -22,7 +23,28 @@ const Dashboard = () => {
   // const problems = getProblems();
 
   const [problems, setProblems] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
+  console.log(users);
+  
+
+   
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setLoadingUsers(true);
+        const res = await axiosInstance.get("/users");
+        setUsers(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error("Error loading users:", err);
+        setUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+    loadUsers();
+  }, []);
   
     // const { problems, refreshProblems } = useProblems();
   useEffect(() => {
@@ -40,7 +62,7 @@ const Dashboard = () => {
       const res = await axiosInstance.get("/problems");
       const apiData = Array.isArray(res.data) ? res.data : [];
 
-      console.log('apiData', apiData);
+      // console.log('apiData', apiData);
       
 
       // 3️⃣ Update only if data changed
@@ -192,6 +214,49 @@ const Dashboard = () => {
             </Table>
           )}
           {/* </CardContent> */}
+        </Card>
+      </div>
+
+      {/* Top Users Section */}
+      <div>
+        <div className="font-bold font-display text-xl pb-4">
+          Top Users
+        </div>
+        <Card>
+          {loadingUsers ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <span className="ml-2 text-sm text-muted-foreground">Loading users...</span>
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <User className="mx-auto h-10 w-10 mb-2 opacity-40" />
+              <p>No users found.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50%]">Name</TableHead>
+                  <TableHead>Username</TableHead>
+                  <TableHead>Problems Solved</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.slice(0, 5).map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">
+                      {user.firstName || user.name || 'Anonymous'}
+                    </TableCell>
+                    <TableCell>@{user.username || 'N/A'}</TableCell>
+                    <TableCell className="text-sm">
+                      {user.publicMetadata?.problemsSolved || user.problemsSolved || 0}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </Card>
       </div>
     </div>

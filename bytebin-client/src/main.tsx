@@ -4,12 +4,13 @@ import "./index.css";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { StrictMode } from "react";
 
-const PUBLISHABLE_KEY =
-  "pk_test_Y2FwYWJsZS1nb2JsaW4tNDYuY2xlcmsuYWNjb3VudHMuZGV2JA";
+if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+  console.error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local");
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} >
+    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY} >
       <App />
     </ClerkProvider>
   </StrictMode>,
