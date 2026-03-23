@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import {
   getProblems,
   saveProblem,
@@ -63,7 +64,11 @@ const LANGUAGES = [
 const AddProblem = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const existing = id ? getProblems().find((p) => p.id === id) : null;
+  const { getToken } = useAuth();
+  const { user } = useUser();
+  const userId = user?.id;
+  const existing =
+    id && userId ? getProblems(userId).find((p) => p.id === id) : null;
 
   const initialSolutions: Solution[] =
     existing?.solutions && existing.solutions.length > 0
@@ -130,31 +135,78 @@ const AddProblem = () => {
   //   setActiveTab(newSolution.id);
   // };
 
-  const submitToBackend = async (problemData: any, id?: string) => {
-    try {
-      console.log("Attempting backend submit...", id);
-      let res;
+    const submitToBackend = async (problemData: any, id?: string) => {
+      try {
+        if (!userId) throw new Error("User not loaded. Please sign in again.");
 
-      if(id){
-        res = await axiosInstance.put(`/problems/${id}`, problemData);
-      }else{
-        res = await axiosInstance.post("/problems/add", problemData);
+        const token = await getToken(); // Clerk auth token
+        let res;
+
+        if (id) {
+          // Update existing problem
+          res = await axiosInstance.put(`/problems/${id}`, problemData, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } else {
+          // Add new problem
+          res = await axiosInstance.post("/problems/add", problemData, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+
+        console.log("Backend saved successfully:", res.data);
+        toast.success("Saved to backend!");
+        return res.data;
+      } catch (error: any) {
+        console.error("Backend error details:", error.response?.data || error.message);
+        toast.error(`Backend save failed (${error.response?.status || "Unknown"}), saved locally`);
+        return null;
       }
-      
-      console.log("Backend saved successfully:", res.data);
-      toast.success("Saved to backend!");
-      return res.data;
-    } catch (error: any) {
-      console.error(
-        "Backend error details:",
-        error.response?.data || error.message,
-      );
-      toast.error(
-        `Backend save failed (${error.response?.status || "Unknown"}), saved locally`,
-      );
-      return null;
-    }
-  };
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      const { title, topic, language, difficulty, solutions } = formData;
+
+      // Validation
+      if (!title || !topic || !language || !difficulty || solutions.some((s) => !s.title || !s.code)) {
+        console.log("Validation failed:", { title, topic, language, difficulty, solutions });
+        toast.error("Please fill in all required fields: Title, Topic, Language, Difficulty, Solution Title & Code");
+        return;
+      }
+
+      // Prepare problem data for backend
+      const problemData = {
+        title,
+        description: formData.description,
+        topic,
+        language,
+        difficulty,
+        code: formData.code,
+        solutions: solutions.map((sol, index) => ({
+          title: String(sol.title || `Solution ${index + 1}`),
+          language: String(sol.language || "JavaScript"),
+          code: String(sol.code || ""),
+        })),
+        notes: formData.notes,
+        references: formData.references
+          .split(",")
+          .map((r) => r.trim())
+          .filter(Boolean),
+        // Do NOT include userId / clerkId here — backend will handle it
+        dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
+      };
+
+      // Submit to backend
+      const savedProblem = await submitToBackend(problemData, existing?.id);
+
+      if (savedProblem) {
+        toast.success(existing ? "Problem updated!" : "Problem added!");
+        // Navigate to the problem page or problems list
+        navigate(existing ? `/problem/${savedProblem.data.id}` : "/problems");
+      }
+    };
 
   const removeSolution = (solutionId: string) => {
     setFormData((prev) => {
@@ -189,63 +241,6 @@ const AddProblem = () => {
       solutions: [...prev.solutions, newSol],
       activeTab: newSol.id,
     }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { title, topic, language, difficulty, solutions } = formData;
-    if (
-      !title ||
-      !topic ||
-      !language ||
-      !difficulty ||
-      solutions.some((s) => !s.title || !s.code)
-    ) {
-      console.log("Validation failed:", {
-        title,
-        topic,
-        language,
-        difficulty,
-        solutions,
-      });
-      toast.error(
-        "Please fill in all required fields: Title, Topic, Language, Difficulty, Solution Title & Code",
-      );
-      return;
-    }
-
-    const problemData = {
-      title,
-      description: formData.description,
-      topic,
-      language,
-      difficulty: difficulty as Problem["difficulty"],
-      code: formData.code,
-      solutions: solutions.map((sol) => ({
-        title: String(sol.title || `Solution ${solutions.indexOf(sol) + 1}`),
-        language: String(sol.language || "JavaScript"),
-        code: String(sol.code || ""),
-      })),
-      notes: formData.notes,
-      references: formData.references
-        .split(",")
-        .map((r) => r.trim())
-        .filter(Boolean),
-      dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
-    };
-
-    // console.log('problemData', problemData);
-
-    const problem: Problem = {
-      ...problemData,
-      id: existing?.id || generateId(),
-      solutions: formData.solutions,
-    };
-
-    await submitToBackend(problemData, existing?.id);
-    saveProblem(problem);
-    toast.success(existing ? "Problem updated!" : "Problem added!");
-    navigate(existing ? `/problem/${problem.id}` : "/problems");
   };
 
   return (

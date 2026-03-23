@@ -116,25 +116,37 @@ const getOrCreateUserProfile = async (userId) => {
       name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.username || 'Anonymous',
       username: clerkUser.username || '',
       imageUrl: clerkUser.imageUrl,
-      email: clerkUser.primaryEmailAddress?.emailAddress || '',
       firstName: clerkUser.firstName || '',
       lastName: clerkUser.lastName || '',
       lastLogin: new Date()
     };
 
+    // Only set email when Clerk actually provides one.
+    // Setting email to '' can cause duplicate checks to incorrectly trigger.
+    const email = clerkUser.primaryEmailAddress?.emailAddress;
+    if (email) {
+      userData.email = email;
+    }
+
 // Check for email duplicate
-    console.log(`🔍 Checking email "${userData.email}" for user ${userId}`);
-    const existingByEmail = await User.findOne({ email: userData.email });
-    if (existingByEmail) {
-      console.log(`📧 Existing user found: ${existingByEmail.clerkId}`);
-      if (existingByEmail.clerkId !== userId) {
-        console.error(`🚫 Duplicate email blocked: ${userData.email}`);
-        throw new Error('Email already registered with another account. Please use the same login method or contact support.');
+    if (userData.email) {
+      console.log(`🔍 Checking email "${userData.email}" for user ${userId}`);
+      const existingByEmail = await User.findOne({ email: userData.email });
+      if (existingByEmail) {
+        console.log(`📧 Existing user found: ${existingByEmail.clerkId}`);
+        if (existingByEmail.clerkId !== userId) {
+          console.error(
+            `🚫 Duplicate email blocked: ${userData.email}`
+          );
+          throw new Error(
+            'Email already registered with another account. Please use the same login method or contact support.'
+          );
+        } else {
+          console.log('✅ Same user email, allowing update');
+        }
       } else {
-        console.log('✅ Same user email, allowing update');
+        console.log('✅ No existing email, can create');
       }
-    } else {
-      console.log('✅ No existing email, can create');
     }
 
     // Upsert MongoDB user (create if not exists, update profile)

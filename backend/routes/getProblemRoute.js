@@ -1,53 +1,56 @@
-
-
-const express = require("express")
+const express = require("express");
 const router = express.Router();
 const Problem = require("../models/AddProblems");
+const authMiddleware = require("../middleware/auth.js");
 
-// 
-router.get("/", async (req, res) => {
+// GET all problems for logged-in user
+router.get("/", authMiddleware, async (req, res) => {
   try {
-    const problems = await Problem.find().sort({ createdAt: -1 });
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-    // 
+    // Fetch only this user's problems
+    const problems = await Problem.find({ clerkId: userId }).sort({ createdAt: -1 });
+
+    // Format response
     const formattedProblems = problems.map((doc) => {
       const obj = doc.toObject();
-
       return {
         ...obj,
         id: obj._id.toString(),
         dateAdded: obj.createdAt.toISOString().split("T")[0],
-        // dateAdded: new Date(obj.createdAt).toLocaleDateString("en-GB").replace(/\//g, "-")
-      }
-    })
-
-
-    // const problemsWithId = problems.map((doc) => ({
-    //   ...doc.toObject(),
-    //   id: doc._id.toString(),
-    // }));
+      };
+    });
 
     res.status(200).json(formattedProblems);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching problems:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-//  by id
-router.get("/:id", async (req, res) => {
+// GET a single problem by ID for logged-in user
+router.get("/:id", authMiddleware, async (req, res) => {
   try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
     const { id } = req.params;
-    const problem = await Problem.findById(id);
-    if (!problem) {
-      return res.status(404).json({ error: "Problem not found" });
-    }
+
+    // Fetch problem only if it belongs to this user
+    const problem = await Problem.findOne({ _id: id, clerkId: userId });
+    if (!problem) return res.status(404).json({ error: "Problem not found" });
+
     const problemWithId = {
       ...problem.toObject(),
       id: problem._id.toString(),
+      dateAdded: problem.createdAt.toISOString().split("T")[0],
     };
+
     res.status(200).json(problemWithId);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching problem:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

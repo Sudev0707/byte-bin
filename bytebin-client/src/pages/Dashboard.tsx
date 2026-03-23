@@ -1,8 +1,8 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import axios from "axios";
-import { getProblems, saveProblem } from "@/utils/localStorage";
+import { getProblems, saveProblems } from "@/utils/localStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -39,12 +39,15 @@ const Dashboard = () => {
 
   const [problems, setProblems] = useState([]);
   const { isLoaded, isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
   const [profile, setProfile] = useState<ProfileData>({
     firstName: "",
     lastName: "",
     username: "",
   });
 
+  console.log('userrr', user);
+  
   useEffect(() => {
     const firstName = user?.firstName;
     const lastName = user?.lastName;
@@ -58,22 +61,26 @@ const Dashboard = () => {
     setProfile(userProfile);
   }, [isLoaded, isSignedIn, user]);
 
-  console.log("profile", profile);
+  // console.log("profile", profile);
 
   // const { problems, refreshProblems } = useProblems();
   useEffect(() => {
     const loadProblems = async () => {
       try {
-        // 1️⃣ Load cached data first
-        const cachedProblems = getProblems();
+        if (!isLoaded || !isSignedIn || !user?.id) return;
+        const token = await getToken();
 
-        if (cachedProblems.length) {
-          // const parsed = JSON.parse(cachedProblems);
-          setProblems(cachedProblems);
-        }
+        // Always clear problems when switching users to prevent stale data.
+        setProblems([]);
+
+        // 1️⃣ Load cached data first
+        const cachedProblems = getProblems(user.id);
+        setProblems(cachedProblems);
 
         // 2️⃣ Always check API for latest data
-        const res = await axiosInstance.get("/problems");
+        const res = await axiosInstance.get("/problems", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const apiData = Array.isArray(res.data) ? res.data : [];
 
         // console.log('apiData', apiData);
@@ -81,15 +88,19 @@ const Dashboard = () => {
         // 3️⃣ Update only if data changed
         if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
           setProblems(apiData);
-          saveProblem(apiData);
         }
+
+        // Always cache per user after a successful API call.
+        // saveProblems(apiData, user.id);
       } catch (err) {
         console.error("Error loading problems:", err);
+        // Prevent stale/cross-user display if API request fails.
+        setProblems([]);
       }
     };
 
     loadProblems();
-  }, []);
+  }, [isLoaded, isSignedIn, user?.id, getToken]);
 
   const stats = useMemo(() => {
     const total = problems.length;

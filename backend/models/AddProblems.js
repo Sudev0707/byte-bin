@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const problemSchema = new mongoose.Schema({
+    clerkId: { type: String, required: true, index: true },
     title: String,
     description: String,
     topic: String,

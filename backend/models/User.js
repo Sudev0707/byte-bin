@@ -57,6 +57,7 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+
 });
 
 // Update updatedAt before save
@@ -64,4 +65,6 @@ userSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+
+module.exports = mongoose.model("User", userSchema)
 

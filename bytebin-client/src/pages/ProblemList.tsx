@@ -45,9 +45,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { axiosInstance } from "../api/axios.js";
+import { useAuth } from "@clerk/clerk-react";
 
 const ProblemList = () => {
   const { problems, refreshProblems } = useProblems();
+  const { getToken } = useAuth();
   const [search, setSearch] = useState("");
   const [topicFilter, setTopicFilter] = useState("all");
   const [langFilter, setLangFilter] = useState("all");
@@ -103,7 +105,10 @@ const ProblemList = () => {
     console.log(id, "iidd");
 
     try {
-      await axiosInstance.delete(`/problems/${id}`);
+      const token = await getToken();
+      await axiosInstance.delete(`/problems/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       await refreshProblems();
       toast.success("Problem deleted");
     } catch (error) {

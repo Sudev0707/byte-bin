@@ -8,11 +8,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Edit, Trash2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { axiosInstance } from "../api/axios.js";
+import { useAuth } from "@clerk/clerk-react";
 
 const ProblemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { problems } = useProblems();
+  const { problems, refreshProblems } = useProblems();
+  const { getToken } = useAuth();
 
   const problem: Problem | undefined = problems.find((p) => p.id === id);
   const [activeTab, setActiveTab] = useState("");
@@ -45,8 +47,12 @@ const ProblemDetail = () => {
     console.log(id, "iidd");
 
     try {
-      await axiosInstance.delete(`/problems/${id}`);
+      const token = await getToken();
+      await axiosInstance.delete(`/problems/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       // deleteProblem(problem.id);
+      await refreshProblems();
       toast.success("Problem deleted");
       // navigate("/problems");
     } catch (error) {

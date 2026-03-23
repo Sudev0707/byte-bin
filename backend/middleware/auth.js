@@ -14,7 +14,11 @@ const authMiddleware = async (req, res, next) => {
     const claims = await clerkClient.verifyToken(token);
     
     // Attach userId to req
-    req.userId = claims.sub;
+    const userId = claims?.sub || claims?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Invalid token: missing subject" });
+    }
+    req.userId = userId;
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);

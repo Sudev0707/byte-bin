@@ -1,11 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const Problem = require("../models/AddProblems");
+const authMiddleware = require("../middleware/auth.js");
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
 
     try {
-        const deleteProblem = await Problem.findByIdAndDelete(req.params.id);
+        if (!req.userId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+        const deleteProblem = await Problem.findOneAndDelete({
+            _id: req.params.id,
+            clerkId: req.userId
+        });
         if (!deleteProblem) {
             return res.status(404).json({ message: "Problem not found" });
         }
