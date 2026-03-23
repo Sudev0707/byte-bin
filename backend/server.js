@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 require('dotenv').config();
-
 // Database connection
 const connectDB = require("./config/db");
 
@@ -17,12 +16,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const { Clerk } = require('@clerk/backend');
+
 const usersRoutes = require("./routes/users");
-
-const clerkClient = new Clerk({ secretKey: process.env.CLERK_SECRET_KEY });
-
-global.clerkClient = clerkClient;
 
 const startServer = async () => {
   try {
