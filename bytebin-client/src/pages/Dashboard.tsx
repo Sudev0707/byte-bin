@@ -35,11 +35,30 @@ const Dashboard = () => {
       try {
         setLoadingUsers(true);
         const res = await axiosInstance.get("/users");
-        console.log(res);
+        console.log("🌐 Users API Response:", {
+          status: res.status,
+          statusText: res.statusText,
+          data: res.data,
+          headers: res.headers
+        });
         
-        setUsers(Array.isArray(res.data) ? res.data : []);
+        // Handle new response structure {success, users, count}
+        if (res.data.success && Array.isArray(res.data.users)) {
+          setUsers(res.data.users);
+        } else if (Array.isArray(res.data)) {
+          setUsers(res.data);
+        } else {
+          console.warn("Unexpected users data format:", res.data);
+          setUsers([]);
+        }
       } catch (err) {
-        console.error("Error loading users:", err);
+        console.error("💥 Detailed Users Error:", {
+          message: err.message,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          headers: err.response?.headers
+        });
         setUsers([]);
       } finally {
         setLoadingUsers(false);
