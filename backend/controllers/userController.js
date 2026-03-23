@@ -1,10 +1,10 @@
 
-import { clerkClient } from '@clerk/clerk-sdk-node';
+// import { clerkClient } from '@clerk/clerk-sdk-node';
+const { clerkClient } = require('@clerk/backend');
 
 
 
-
-export const searchUsers = async (req, res) => {
+const searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
 
@@ -36,15 +36,19 @@ export const searchUsers = async (req, res) => {
     }
 };
 
-export const getAllUsers = async (req, res) => {
+
+
+const getAllUsers = async (req, res) => {
     try {
-        const users = await clerkClient.users.getUserList({
-            limit: 20, 
-        });
+        const users = await clerkClient.users.getUserList();
+
+        console.log("Users:", users); 
 
         res.json(users.data); 
     } catch (error) {
-        console.error(error);
+        console.error("ERROR:", error);
         res.status(500).json({ message: "Failed to fetch users" });
     }
 };
+
+module.exports = { searchUsers, getAllUsers };
