@@ -1,9 +1,17 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
 import axios from "axios";
 import { getProblems, saveProblem } from "@/utils/localStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table,TableBody,TableCell,TableHead,TableHeader,TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -14,48 +22,74 @@ import {
 } from "lucide-react";
 import { format, isToday, isThisMonth } from "date-fns";
 import { log } from "node:console";
-import {axiosInstance} from "../api/axios.js"
+import { axiosInstance } from "../api/axios.js";
 import { useProblems } from "@/context/ProblemsContext";
 
+interface ProfileData {
+  firstName?: string;
+  lastName?: string;
+  username: string;
+  email?: string;
+  imageUrl?: string;
+  bio?: string;
+}
 
 const Dashboard = () => {
   // const problems = getProblems();
 
   const [problems, setProblems] = useState([]);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const [profile, setProfile] = useState<ProfileData>({
+    firstName: "",
+    lastName: "",
+    username: "",
+  });
 
-  
-    // const { problems, refreshProblems } = useProblems();
   useEffect(() => {
-  const loadProblems = async () => {
-    try {
-      // 1️⃣ Load cached data first
-      const cachedProblems = getProblems();
+    const firstName = user?.firstName;
+    const lastName = user?.lastName;
+    const displayName = (user?.firstName + " " + user?.lastName).trim();
+    const userProfile: ProfileData = {
+      firstName,
+      lastName,
+      username: displayName,
+      email: user.primaryEmailAddress?.emailAddress,
+    };
+    setProfile(userProfile);
+  }, [isLoaded, isSignedIn, user]);
 
-      if (cachedProblems.length) {
-        // const parsed = JSON.parse(cachedProblems);
-        setProblems(cachedProblems);
+  console.log("profile", profile);
+
+  // const { problems, refreshProblems } = useProblems();
+  useEffect(() => {
+    const loadProblems = async () => {
+      try {
+        // 1️⃣ Load cached data first
+        const cachedProblems = getProblems();
+
+        if (cachedProblems.length) {
+          // const parsed = JSON.parse(cachedProblems);
+          setProblems(cachedProblems);
+        }
+
+        // 2️⃣ Always check API for latest data
+        const res = await axiosInstance.get("/problems");
+        const apiData = Array.isArray(res.data) ? res.data : [];
+
+        // console.log('apiData', apiData);
+
+        // 3️⃣ Update only if data changed
+        if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
+          setProblems(apiData);
+          saveProblem(apiData);
+        }
+      } catch (err) {
+        console.error("Error loading problems:", err);
       }
+    };
 
-      // 2️⃣ Always check API for latest data
-      const res = await axiosInstance.get("/problems");
-      const apiData = Array.isArray(res.data) ? res.data : [];
-
-      // console.log('apiData', apiData);
-      
-
-      // 3️⃣ Update only if data changed
-      if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
-        setProblems(apiData);
-        saveProblem(apiData)
-      }
-
-    } catch (err) {
-      console.error("Error loading problems:", err);
-    }
-  };
-
-  loadProblems();
-}, []);
+    loadProblems();
+  }, []);
 
   const stats = useMemo(() => {
     const total = problems.length;
@@ -159,7 +193,7 @@ const Dashboard = () => {
               </TableHeader>
               <TableBody>
                 {recentProblems.map((p) => (
-                  <TableRow key={p.id} className="text-sm " >
+                  <TableRow key={p.id} className="text-sm ">
                     <TableCell className="font-medium text-lg max-w-[300px]">
                       <Link
                         to={`/problem/${p.id}`}
@@ -173,11 +207,11 @@ const Dashboard = () => {
                     <TableCell>
                       <span
                         className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                         p.difficulty === "Easy"
-                          ? "bg-secondary text-accent-foreground"
-                          : p.difficulty === "Medium"
-                            ? "bg-secondary text-yellow-500"
-                            : "bg-secondary text-red-400"
+                          p.difficulty === "Easy"
+                            ? "bg-secondary text-accent-foreground"
+                            : p.difficulty === "Medium"
+                              ? "bg-secondary text-yellow-500"
+                              : "bg-secondary text-red-400"
                         }`}
                       >
                         {p.difficulty}
