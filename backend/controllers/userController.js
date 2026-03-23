@@ -7,6 +7,31 @@ const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
 
+const getAllUsers = async (req, res) => {
+  try {
+    // Debug: make sure secret key is available
+    if (!process.env.CLERK_SECRET_KEY) {
+      return res.status(500).json({
+        message: 'Clerk secret key is missing. Set CLERK_SECRET_KEY in your env variables.',
+      });
+    }
+
+    // Fetch users from Clerk
+    const users = await clerkClient.users.getUserList({ limit: 10 });
+
+    // users is an array, return it directly
+    res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    console.error('ERROR fetching users:', error);
+    res.status(500).json({
+      message: 'Failed to fetch users',
+      error: error.message,
+    });
+  }
+};
 
 const searchUsers = async (req, res) => {
     try {
@@ -42,18 +67,7 @@ const searchUsers = async (req, res) => {
 
 
 
-const getAllUsers = async (req, res) => {
-  try {
-    console.log("SECRET:", process.env.CLERK_SECRET_KEY);
 
-    const users = await clerkClient.users.getUserList({ limit: 10 });
-
-    res.json(users.data);
-  } catch (error) {
-    console.error("ERROR:", error);
-    res.status(500).json({ message: "Failed to fetch users", error: error.message });
-  }
-};
 
 // const getAllUsers = async (req, res) => {
 //     try {
