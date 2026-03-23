@@ -48,10 +48,13 @@ export const ProblemsProvider = ({ children }: ProblemsProviderProps) => {
       setProblems(cached);
 
       // Fetch fresh from API
-      const token = await getToken();
-      const res = await axiosInstance.get('/problems', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const token = await getToken({ template: "default" });
+      console.log("TOKEN:", token);
+      const res = await axiosInstance.get("/problems", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
       const apiData: Problem[] = Array.isArray(res.data) ? res.data : [];
 
       // Update if different

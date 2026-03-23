@@ -1,22 +1,27 @@
-const { auth } = require('@clerk/clerk-sdk-node');
+const { verifyToken } = require("@clerk/backend");
 
 const authMiddleware = async (req, res, next) => {
   try {
     const { authorization } = req.headers;
-    if (!authorization || !authorization.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Missing or invalid Authorization header' });
+
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Missing or invalid Authorization header" });
     }
 
-    const token = authorization.split(' ')[1];
+    const token = authorization.split(" ")[1];
 
-    // Verify token using Clerk SDK
-    const session = await auth.verifyToken(token); // returns session info if valid
+    // ✅ Verify token properly
+    const payload = await verifyToken(token, {
+      secretKey: process.env.CLERK_SECRET_KEY,
+    });
 
-    req.userId = session.sub; // Clerk user ID
+    // ✅ Attach Clerk userId
+    req.userId = payload.sub;
+
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
-    res.status(401).json({ error: 'Invalid token' });
+    console.error("Auth middleware error:", error);
+    return res.status(401).json({ error: "Invalid token" });
   }
 };
 
