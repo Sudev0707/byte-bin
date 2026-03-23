@@ -1,5 +1,4 @@
-const { clerkClient } = require('@clerk/backend');
-const jwt = require('jsonwebtoken');
+const { auth } = require('@clerk/clerk-sdk-node');
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -9,16 +8,11 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const token = authorization.split(' ')[1];
-    
-    // Verify JWT token using Clerk's method
-    const claims = await clerkClient.verifyToken(token);
-    
-    // Attach userId to req
-    const userId = claims?.sub || claims?.userId;
-    if (!userId) {
-      return res.status(401).json({ error: "Invalid token: missing subject" });
-    }
-    req.userId = userId;
+
+    // Verify token using Clerk SDK
+    const session = await auth.verifyToken(token); // returns session info if valid
+
+    req.userId = session.sub; // Clerk user ID
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
@@ -27,4 +21,3 @@ const authMiddleware = async (req, res, next) => {
 };
 
 module.exports = authMiddleware;
-
