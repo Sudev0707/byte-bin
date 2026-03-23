@@ -72,7 +72,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 
 // 
 router.get('/search', searchUsers);
-router.get("/users", getAllUsers);
+router.get("/", getAllUsers);
 
 module.exports = router;
 

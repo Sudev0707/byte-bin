@@ -35,6 +35,8 @@ const Dashboard = () => {
       try {
         setLoadingUsers(true);
         const res = await axiosInstance.get("/users");
+        console.log(res);
+        
         setUsers(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Error loading users:", err);
