@@ -46,7 +46,7 @@ const Dashboard = () => {
     username: "",
   });
 
-  console.log('userrr', user);
+  // console.log('userrr', user);
   
   useEffect(() => {
     const firstName = user?.firstName;

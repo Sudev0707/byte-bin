@@ -10,12 +10,11 @@ const authMiddleware = async (req, res, next) => {
 
     const token = authorization.split(" ")[1];
 
-    // ✅ Verify token properly
+    // ✅ FIXED: no template
     const payload = await verifyToken(token, {
       secretKey: process.env.CLERK_SECRET_KEY,
     });
 
-    // ✅ Attach Clerk userId
     req.userId = payload.sub;
 
     next();
