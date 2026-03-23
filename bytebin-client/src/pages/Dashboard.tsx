@@ -64,54 +64,45 @@ const Dashboard = () => {
   // console.log("profile", profile);
 
   // const { problems, refreshProblems } = useProblems();
-  useEffect(() => {
-    const loadProblems = async () => {
-      try {
-        if (!isLoaded || !isSignedIn || !user?.id) return;
-        const token = await getToken({ template: "default" });
-        console.log("Dashboard TOKEN:", token ? `${token.slice(0, 20)}...` : "NO TOKEN");
+ useEffect(() => {
+  const loadProblems = async () => {
+    try {
+      if (!isLoaded || !isSignedIn || !user?.id) return;
 
-        // Always clear problems when switching users to prevent stale data.
-        setProblems([]);
+      const token = await getToken();
+      console.log("Dashboard TOKEN:", token ? `${token.slice(0, 20)}...` : "NO TOKEN");
 
-        // 1️⃣ Load cached data first
-        const cachedProblems = getProblems(user.id);
-        setProblems(cachedProblems);
+      setProblems([]);
 
-        // 2️⃣ Always check API for latest data
-        console.log("Making API call to /problems...");
-        const res = await axiosInstance.get("/problems", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const apiData = Array.isArray(res.data) ? res.data : [];
+      const cachedProblems = getProblems(user.id);
+      setProblems(cachedProblems);
 
-        // console.log('apiData', apiData);
+      const res = await axiosInstance.get("/problems", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        // 3️⃣ Update only if data changed
-        if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
-          setProblems(apiData);
-        }
+      const apiData = Array.isArray(res.data) ? res.data : [];
 
-        // Always cache per user after a successful API call.
-        // saveProblems(apiData, user.id);
-      } catch (err) {
-        console.error("Error loading problems:", err);
-        if (err.response) {
-          console.error("Full error:", err.response.data);
-          console.error("Status:", err.response.status);
-          console.error("Status text:", err.response.statusText);
-        } else {
-          console.error("Error message:", err.message);
-        }
-        // console.error("Headers sent:", { Authorization: token ? "present" : "missing" });
-        // Prevent stale/cross-user display if API request fails.
-        setProblems([]);
+      if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
+        setProblems(apiData);
       }
-    };
+    } catch (err: any) {
+      console.error("Error loading problems:", err);
 
-    loadProblems();
-  }, [isLoaded, isSignedIn, user?.id, getToken]);
+      if (err.response) {
+        console.error("Full error:", err.response.data);
+        console.error("Status:", err.response.status);
+        console.error("Status text:", err.response.statusText);
+      } else {
+        console.error("Error message:", err.message);
+      }
 
+      setProblems([]);
+    }
+  };
+
+  loadProblems();
+}, [isLoaded, isSignedIn, user?.id, getToken]);
   const stats = useMemo(() => {
     const total = problems.length;
     const today = problems.filter((p) => {
