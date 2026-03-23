@@ -11,10 +11,9 @@ import {
   CalendarCheck,
   CalendarDays,
   BookOpen,
-  User,
 } from "lucide-react";
 import { format, isToday, isThisMonth } from "date-fns";
-
+import { log } from "node:console";
 import {axiosInstance} from "../api/axios.js"
 import { useProblems } from "@/context/ProblemsContext";
 
@@ -23,49 +22,7 @@ const Dashboard = () => {
   // const problems = getProblems();
 
   const [problems, setProblems] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
 
-  console.log(users);
-  
-
-   
-  useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        setLoadingUsers(true);
-        const res = await axiosInstance.get("/users");
-        console.log("🌐 Users API Response:", {
-          status: res.status,
-          statusText: res.statusText,
-          data: res.data,
-          headers: res.headers
-        });
-        
-        // Handle new response structure {success, users, count}
-        if (res.data.success && Array.isArray(res.data.users)) {
-          setUsers(res.data.users);
-        } else if (Array.isArray(res.data)) {
-          setUsers(res.data);
-        } else {
-          console.warn("Unexpected users data format:", res.data);
-          setUsers([]);
-        }
-      } catch (err) {
-        console.error("💥 Detailed Users Error:", {
-          message: err.message,
-          status: err.response?.status,
-          statusText: err.response?.statusText,
-          data: err.response?.data,
-          headers: err.response?.headers
-        });
-        setUsers([]);
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
-    loadUsers();
-  }, []);
   
     // const { problems, refreshProblems } = useProblems();
   useEffect(() => {
@@ -235,49 +192,6 @@ const Dashboard = () => {
             </Table>
           )}
           {/* </CardContent> */}
-        </Card>
-      </div>
-
-      {/* Top Users Section */}
-      <div>
-        <div className="font-bold font-display text-xl pb-4">
-          Top Users
-        </div>
-        <Card>
-          {loadingUsers ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              <span className="ml-2 text-sm text-muted-foreground">Loading users...</span>
-            </div>
-          ) : users.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <User className="mx-auto h-10 w-10 mb-2 opacity-40" />
-              <p>No users found.</p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50%]">Name</TableHead>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Problems Solved</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.slice(0, 5).map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">
-                      {user.firstName || user.name || 'Anonymous'}
-                    </TableCell>
-                    <TableCell>@{user.username || 'N/A'}</TableCell>
-                    <TableCell className="text-sm">
-                      {user.publicMetadata?.problemsSolved || user.problemsSolved || 0}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
         </Card>
       </div>
     </div>

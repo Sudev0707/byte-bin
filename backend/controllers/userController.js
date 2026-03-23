@@ -102,4 +102,62 @@ const searchUsers = async (req, res) => {
 //     }
 // };
 
-module.exports = { searchUsers, getAllUsers };
+const User = require('../models/User');
+
+// Get or create user profile - syncs Clerk + MongoDB
+const getOrCreateUserProfile = async (userId) => {
+  try {
+    // Fetch Clerk user data
+    const clerkUser = await clerkClient.users.getUser(userId);
+    
+    // Prepare data for MongoDB
+    const userData = {
+      clerkId: userId,
+      name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.username || 'Anonymous',
+      username: clerkUser.username || '',
+      imageUrl: clerkUser.imageUrl,
+      email: clerkUser.primaryEmailAddress?.emailAddress || '',
+      firstName: clerkUser.firstName || '',
+      lastName: clerkUser.lastName || '',
+      lastLogin: new Date()
+    };
+
+// Check for email duplicate
+    console.log(`🔍 Checking email "${userData.email}" for user ${userId}`);
+    const existingByEmail = await User.findOne({ email: userData.email });
+    if (existingByEmail) {
+      console.log(`📧 Existing user found: ${existingByEmail.clerkId}`);
+      if (existingByEmail.clerkId !== userId) {
+        console.error(`🚫 Duplicate email blocked: ${userData.email}`);
+        throw new Error('Email already registered with another account. Please use the same login method or contact support.');
+      } else {
+        console.log('✅ Same user email, allowing update');
+      }
+    } else {
+      console.log('✅ No existing email, can create');
+    }
+
+    // Upsert MongoDB user (create if not exists, update profile)
+    const user = await User.findOneAndUpdate(
+      { clerkId: userId },
+      { ...userData, $setOnInsert: { problemsSolved: 0 } },
+      { upsert: true, new: true }
+    );
+    
+    console.log(`💾 User upserted: ${user.clerkId}, email: ${user.email || 'none'}, new doc: ${user._id}`);
+
+    // Enhance with full profile
+    return {
+      id: user.clerkId,
+      ...userData,
+      problemsSolved: user.problemsSolved || 0,
+      submissions: user.submissions || [],
+      stats: user.stats || { topics: { easy: 0, medium: 0, hard: 0 }, streaks: { current: 0, max: 0 } }
+    };
+  } catch (error) {
+    console.error('Error in getOrCreateUserProfile:', error);
+    throw error;
+  }
+};
+
+module.exports = { searchUsers, getAllUsers, getOrCreateUserProfile };
