@@ -2,8 +2,7 @@ const express = require('express');
 const { clerkClient } = require('@clerk/backend');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.js');
-import { getAllUsers, searchUsers } from '../controllers/userController.js';
-
+const { getAllUsers, searchUsers } = require('../controllers/userController.js');
 // POST /api/users/search
 // Body: { q: 'search term' }
 router.post('/search', authMiddleware, async (req, res) => {
