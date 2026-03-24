@@ -67,7 +67,8 @@ const AddProblem = () => {
   const { getToken } = useAuth();
   const { user } = useUser();
   const userId = user?.id;
-  const existing = id && userId ? getProblems(userId).find((p) => p.id === id) : null;
+  const existing =
+    id && userId ? getProblems(userId).find((p) => p.id === id) : null;
 
   const initialSolutions: Solution[] =
     existing?.solutions && existing.solutions.length > 0
@@ -134,34 +135,76 @@ const AddProblem = () => {
   //   setActiveTab(newSolution.id);
   // };
 
-  const submitToBackend = async (problemData: any, id?: string) => {
-    try {
-      console.log("Attempting backend submit...", id);
-      let res;
-      if (!userId) throw new Error("User not loaded. Please sign in again.");
-      const token = await getToken();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-      if(id){
-        res = await axiosInstance.put(`/problems/${id}`, problemData, {
+    const { title, topic, language, difficulty, solutions } = formData;
+
+    // ✅ Validation
+    if (
+      !title ||
+      !topic ||
+      !language ||
+      !difficulty ||
+      solutions.some((s) => !s.title || !s.code)
+    ) {
+      toast.error("Fill all required fields");
+      return;
+    }
+
+    // ✅ Prepare data
+    const problemData = {
+      title,
+      description: formData.description,
+      topic,
+      language,
+      difficulty,
+      code: formData.code,
+      notes: formData.notes,
+      references: formData.references
+        .split(",")
+        .map((r) => r.trim())
+        .filter(Boolean),
+
+      solutions: solutions.map((sol, i) => ({
+        title: sol.title || `Solution ${i + 1}`,
+        language: sol.language || "JavaScript",
+        code: sol.code || "",
+      })),
+    };
+
+    // ✅ Call backend
+    await submitToBackend(problemData, existing?.id);
+
+    toast.success(existing ? "Updated!" : "Added!");
+    navigate(existing ? `/problem/${existing.id}` : "/problems");
+  };
+
+  const submitToBackend = async (data: any, id?: string) => {
+    try {
+      if (!userId) throw new Error("User not logged in");
+
+      const token = await getToken();
+      console.log('added token :', token);
+      
+      if (!token) throw new Error("No auth token");
+
+      let res;
+
+      if (id) {
+        res = await axiosInstance.put(`/problems/${id}`, data, {
           headers: { Authorization: `Bearer ${token}` },
         });
-      }else{
-        res = await axiosInstance.post("/problems/add", problemData, {
+      } else {
+        res = await axiosInstance.post(`/problems/add`, data, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
-      
-      console.log("Backend saved successfully:", res.data);
-      toast.success("Saved to backend!");
+
       return res.data;
     } catch (error: any) {
-      console.error(
-        "Backend error details:",
-        error.response?.data || error.message,
-      );
-      toast.error(
-        `Backend save failed (${error.response?.status || "Unknown"}), saved locally`,
-      );
+      console.error("Backend error:", error.response?.data || error.message);
+      toast.error("Failed to save to backend");
       return null;
     }
   };
@@ -199,63 +242,6 @@ const AddProblem = () => {
       solutions: [...prev.solutions, newSol],
       activeTab: newSol.id,
     }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { title, topic, language, difficulty, solutions } = formData;
-    if (
-      !title ||
-      !topic ||
-      !language ||
-      !difficulty ||
-      solutions.some((s) => !s.title || !s.code)
-    ) {
-      console.log("Validation failed:", {
-        title,
-        topic,
-        language,
-        difficulty,
-        solutions,
-      });
-      toast.error(
-        "Please fill in all required fields: Title, Topic, Language, Difficulty, Solution Title & Code",
-      );
-      return;
-    }
-
-    const problemData = {
-      title,
-      description: formData.description,
-      topic,
-      language,
-      difficulty: difficulty as Problem["difficulty"],
-      code: formData.code,
-      solutions: solutions.map((sol) => ({
-        title: String(sol.title || `Solution ${solutions.indexOf(sol) + 1}`),
-        language: String(sol.language || "JavaScript"),
-        code: String(sol.code || ""),
-      })),
-      notes: formData.notes,
-      references: formData.references
-        .split(",")
-        .map((r) => r.trim())
-        .filter(Boolean),
-      dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
-    };
-
-    // console.log('problemData', problemData);
-
-    const problem: Problem = {
-      ...problemData,
-      id: existing?.id || generateId(),
-      solutions: formData.solutions,
-    };
-
-    await submitToBackend(problemData, existing?.id);
-    saveProblem(problem, userId);
-    toast.success(existing ? "Problem updated!" : "Problem added!");
-    navigate(existing ? `/problem/${problem.id}` : "/problems");
   };
 
   return (

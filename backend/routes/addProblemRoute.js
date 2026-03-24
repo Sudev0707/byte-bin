@@ -4,10 +4,10 @@ const Problem = require("../models/AddProblems");
 const authMiddleware = require("../middleware/auth.js");
 
 // Add a new problem (only for authenticated users)
-router.post("/add", authMiddleware, async (req, res) => {
+router.post("/add", async (req, res) => {
   try {
-    // Ensure user is authenticated
-    if (!req.userId) {
+    const userId = req.auth?.userId;
+    if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
@@ -19,8 +19,8 @@ router.post("/add", authMiddleware, async (req, res) => {
       language,
       difficulty,
       notes,
-      references,
       code,
+      references,
       solutions,
     } = req.body;
 
@@ -31,37 +31,44 @@ router.post("/add", authMiddleware, async (req, res) => {
         .json({ error: "Title, topic, language, and difficulty are required" });
     }
 
-    // Create new problem for this user
-    const newProblem = new Problem({
-      clerkId: req.userId, // always assign from auth, never trust frontend
+    //  Normalize references
+    const formattedReferences =
+      typeof references === "string"
+        ? references.split(",").map(r => r.trim()).filter(Boolean)
+        : Array.isArray(references)
+          ? references
+          : [];
+
+    //  Normalize solutions
+    const formattedSolutions = Array.isArray(solutions)
+      ? solutions.map((s, i) => ({
+        title: s?.title || `Solution ${i + 1}`,
+        language: s?.language || "JavaScript",
+        code: s?.code || "",
+      }))
+      : [];
+
+    const newProblem = await Problem.create({
+      clerkId: userId,
       title,
       description,
       topic,
       language,
       difficulty,
       notes,
-      references: Array.isArray(references)
-        ? references
-        : typeof references === "string"
-        ? references.split(",").map((r) => r.trim()).filter(Boolean)
-        : [],
       code,
-      solutions: Array.isArray(solutions)
-        ? solutions.map((s) => ({
-            title: s.title || "Solution",
-            language: s.language || "JavaScript",
-            code: s.code || "",
-          }))
-        : [],
+      references: formattedReferences,
+      solutions: formattedSolutions,
     });
+    console.log("Saved Problem:", newProblem);
 
     await newProblem.save();
 
-    // Return problem with readable id
-    const problemWithId = {
-      ...newProblem.toObject(),
-      id: newProblem._id.toString(),
-    };
+    const problemWithId = newProblem.toObject();
+
+    problemWithId.id = problemWithId._id.toString();
+    delete problemWithId._id;
+    delete problemWithId.__v;
 
     res
       .status(201)

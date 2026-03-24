@@ -70,6 +70,8 @@ const Dashboard = () => {
       if (!isLoaded || !isSignedIn || !user?.id) return;
 
       const token = await getToken();
+      console.log('tokent', token);
+      
       console.log("Dashboard TOKEN:", token ? `${token.slice(0, 20)}...` : "NO TOKEN");
 
       setProblems([]);

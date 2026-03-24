@@ -48,8 +48,8 @@ export const ProblemsProvider = ({ children }: ProblemsProviderProps) => {
       setProblems(cached);
 
       // Fetch fresh from API
-      const token = await getToken({ template: "default" });
-      console.log("TOKEN:", token);
+      const token = await getToken();
+      // console.log("TOKEN:", token);
       const res = await axiosInstance.get("/problems", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -59,7 +59,7 @@ export const ProblemsProvider = ({ children }: ProblemsProviderProps) => {
 
       // Update if different
       // Always write cache for the current user after a successful API call.
-      // saveProblems(apiData, userId);
+   
       if (JSON.stringify(apiData) !== JSON.stringify(cached)) {
         setProblems(apiData);
       }

@@ -1,8 +1,8 @@
 require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
-
-// Database connection
+// const {ClerkExpressRequireAuth} = require("@clerk/express")
+const { clerkMiddleware, requireAuth } = require("@clerk/express");// Database connection
 const connectDB = require("./config/db");
 
 // Routes
@@ -23,9 +23,14 @@ const usersRoutes = require("./routes/users");
 const startServer = async () => {
   try {
     await connectDB();
-    // Routes
-    app.use("/api/problems", addProblemRoutes); //post
-    app.use("/api/problems", getProblemRoutes); // get
+
+    // Protect all problem routes
+    app.use(clerkMiddleware());
+    app.use("/api/problems", requireAuth(), addProblemRoutes);
+    app.use("/api/problems", requireAuth(), getProblemRoutes);
+    //
+    // app.use("/api/problems", addProblemRoutes); 
+    // app.use("/api/problems", getProblemRoutes); 
     app.use("/api/problems", deleteProblemRoute); // delete
     app.use("/api/problems", editProblemRoutes); // put
     app.use("/api/users", usersRoutes);
