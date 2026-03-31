@@ -3,11 +3,13 @@
 const express = require("express")
 const router = express.Router();
 const Problem = require("../models/AddProblems");
+const { requireAuth } = require("@clerk/express");
 
-// 
-router.get("/", async (req, res) => {
+// Protected GET /
+router.get("/", requireAuth(), async (req, res) => {
   try {
-    const problems = await Problem.find().sort({ createdAt: -1 });
+    const clerkId = req.auth.userId; // From Clerk middleware
+    const problems = await Problem.find({ clerkId }).sort({ createdAt: -1 });
 
     const problemsWithId = problems.map((doc) => ({
       ...doc.toObject(),
@@ -20,6 +22,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Public or protected GET /:id (problem detail)
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;

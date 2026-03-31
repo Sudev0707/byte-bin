@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const problemSchema = new mongoose.Schema({
+    userId: {type: String, required: true, index: true},
     title: String,
     description: String,
     topic: String,
@@ -14,10 +15,7 @@ const problemSchema = new mongoose.Schema({
         code: String
     }],
     references: [String],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-})
+   
+}, { timestamps: true })
 
 module.exports = mongoose.model("Problems", problemSchema)

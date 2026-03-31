@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import {
@@ -53,6 +54,7 @@ import {
 import { axiosInstance } from "../api/axios.js";
 
 const ProblemList = () => {
+  const { user, isSignedIn } = useUser();
   const [problems, setProblems] = useState([]);
   const [search, setSearch] = useState("");
   const [topicFilter, setTopicFilter] = useState("all");
@@ -93,13 +95,14 @@ const ProblemList = () => {
       }
 
       // 2️⃣ Always check API for latest data
-      const res = await axiosInstance.get("/problems");
+      const clerkIdParam = isSignedIn && user?.id ? `?clerkId=${user.id}` : "";
+      const res = await axiosInstance.get(`/problems${clerkIdParam}`);
       const apiData = Array.isArray(res.data) ? res.data : [];
 
       // 3️⃣ Update only if data changed
       if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
         setProblems(apiData);
-        // saveProblems(apiData)
+      
       }
 
     } catch (err) {

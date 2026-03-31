@@ -3,12 +3,16 @@
 const express = require("express")
 const router = express.Router();
 const Problem = require("../models/AddProblems");
+const { requireAuth } = require("@clerk/express");
+
 
 // add problem ======================
-router.post("/add", async (req, res) => {
+router.post("/add", requireAuth, async (req, res) => {
     try {
-        const { title, description, topic, language, difficulty, notes, references, code, solutions } = req.body;
-        const newProblem = new Problem({ title, description, topic, language, difficulty, notes, references, code, solutions });
+        const userId = req.auth.userId; 
+        const { title, description, topic, language, difficulty, notes, references, code, solutions, clerkId } = req.body;
+        
+        const newProblem = new Problem({ userId, title, description, topic, language, difficulty, notes, references, code, solutions, clerkId });
         await newProblem.save();
         res.status(201).json({ message: "Problem saved successfully", data: newProblem })
 

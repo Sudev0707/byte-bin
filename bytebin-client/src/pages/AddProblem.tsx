@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import {
@@ -24,7 +25,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { addSeconds } from "date-fns";
-import { axiosInstance } from "../api/axios.js"
+import { axiosInstance } from "../api/axios.js";
 
 const TOPICS = [
   "Conditional",
@@ -61,27 +62,34 @@ const LANGUAGES = [
 ];
 
 const AddProblem = () => {
+  const { isSignedIn, user } = useUser();
   const navigate = useNavigate();
   const { id } = useParams();
   const existing = id ? getProblems().find((p) => p.id === id) : null;
+  const { getToken } = useAuth();
+  const token = getToken();
 
-  const initialSolutions: Solution[] = existing?.solutions && existing.solutions.length > 0
-    ? existing.solutions
-    : [
-        {
-          id: generateId(),
-          title: "Solution 1",
-          code: "",
-          language: "JavaScript",
-        },
-      ];
+
+
+
+  const initialSolutions: Solution[] =
+    existing?.solutions && existing.solutions.length > 0
+      ? existing.solutions
+      : [
+          {
+            id: generateId(),
+            title: "Solution 1",
+            code: "",
+            language: "JavaScript",
+          },
+        ];
 
   const [formData, setFormData] = useState({
     title: existing?.title || "",
     description: existing?.description || "",
     topic: existing?.topic || "",
     language: existing?.language || "",
-    difficulty: existing?.difficulty || "" as Problem["difficulty"] | "",
+    difficulty: existing?.difficulty || ("" as Problem["difficulty"] | ""),
     notes: existing?.notes || "",
     code: existing?.code || "",
     references: existing?.references?.join(", ") || "",
@@ -92,7 +100,9 @@ const AddProblem = () => {
   const updatePath = (path: string, value: string) => {
     setFormData((prev) => {
       const newData = { ...prev };
-      const keys = path.includes('[') ? path.match(/(\w+|\d+)/g) || [] : path.split('.');
+      const keys = path.includes("[")
+        ? path.match(/(\w+|\d+)/g) || []
+        : path.split(".");
       let current: any = newData;
 
       for (let i = 0; i < keys.length - 1; i++) {
@@ -104,7 +114,10 @@ const AddProblem = () => {
       const lastKey = keys[keys.length - 1];
       if (Array.isArray(current) && /^\d+$/.test(lastKey)) {
         const index = parseInt(lastKey);
-        current[index] = { ...current[index], [path.split('[')[1]?.slice(0, -1) || lastKey]: value };
+        current[index] = {
+          ...current[index],
+          [path.split("[")[1]?.slice(0, -1) || lastKey]: value,
+        };
       } else {
         current[lastKey] = value;
       }
@@ -113,27 +126,85 @@ const AddProblem = () => {
     });
   };
 
-  // const addSolution = () => {
-  //   const newSolution: Solution = {
-  //     id: generateId(),
-  //     title: `Solution ${solutions.length + 1}`,
-  //     code: "",
-  //     language: "JavaScript",
-  //   };
-  //   setSolutions((prev) => [...prev, newSolution]);
-  //   setActiveTab(newSolution.id);
-  // };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { title, topic, language, difficulty, solutions } = formData;
+    if (
+      !title ||
+      !topic ||
+      !language ||
+      !difficulty ||
+      solutions.some((s) => !s.title || !s.code)
+    ) {
+      console.log("Validation failed:", {
+        title,
+        topic,
+        language,
+        difficulty,
+        solutions,
+      });
+      toast.error(
+        "Please fill in all required fields: Title, Topic, Language, Difficulty, Solution Title & Code",
+      );
+      return;
+    }
 
-    const submitToBackend = async (problemData: any) => {
+    const problemData = {
+      title,
+      description: formData.description,
+      topic,
+      language,
+      difficulty: difficulty as Problem["difficulty"],
+      code: formData.code,
+      solutions: solutions.map((sol) => ({
+        title: String(sol.title || `Solution ${solutions.indexOf(sol) + 1}`),
+        language: String(sol.language || "JavaScript"),
+        code: String(sol.code || ""),
+      })),
+      notes: formData.notes,
+      references: formData.references
+        .split(",")
+        .map((r) => r.trim())
+        .filter(Boolean),
+      clerkId: user?.id || "",
+      dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
+    };
+
+    if (!isSignedIn) {
+      toast.error("Please sign in to add problems");
+      return;
+    }
+
+    const problem: Problem = {
+      ...problemData,
+      id: existing?.id || generateId(),
+      solutions: formData.solutions,
+    };
+
+    await submitToBackend(problemData);
+    console.log("problemData: ", problemData);
+
+    toast.success(existing ? "Problem updated!" : "Problem added!");
+  };
+
+  const submitToBackend = async (problemData: any) => {
     try {
       console.log("Attempting backend submit...");
-      const res = await axiosInstance.post("/problems/add", problemData);
+      const token = await getToken();
+      console.log('TOKEN : ', token);
+      
+      const res = await axiosInstance.post("/problems/add", problemData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       console.log("Backend saved successfully:", res.data);
       toast.success("Saved to backend!");
       return res.data;
     } catch (error: any) {
-      console.error("Backend error details:", error.response?.data || error.message);
-      toast.error(`Backend save failed (${error.response?.status || 'Unknown'}), saved locally`);
+      toast.error(
+        `Backend save failed (${error.response?.status || "Unknown"}), saved locally`,
+      );
       return null;
     }
   };
@@ -144,7 +215,9 @@ const AddProblem = () => {
         toast.error("You must have at least one solution");
         return prev;
       }
-      const newSolutions = prev.solutions.filter((sol) => sol.id !== solutionId);
+      const newSolutions = prev.solutions.filter(
+        (sol) => sol.id !== solutionId,
+      );
       let newActiveTab = prev.activeTab;
       if (prev.activeTab === solutionId) {
         newActiveTab = newSolutions[0]?.id || "";
@@ -171,55 +244,6 @@ const AddProblem = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { title, topic, language, difficulty, solutions } = formData;
-    if (
-      !title ||
-      !topic ||
-      !language ||
-      !difficulty ||
-      solutions.some((s) => !s.title || !s.code)
-    ) {
-      console.log("Validation failed:", { title, topic, language, difficulty, solutions });
-      toast.error("Please fill in all required fields: Title, Topic, Language, Difficulty, Solution Title & Code");
-      return;
-    }
-
-    const problemData = {
-      title,
-      description: formData.description,
-      topic,
-      language,
-      difficulty: difficulty as Problem["difficulty"],
-      code: formData.code,
-      solutions: solutions.map((sol) => ({
-        title: String(sol.title || `Solution ${solutions.indexOf(sol) + 1}`),
-        language: String(sol.language || "JavaScript"),
-        code: String(sol.code || ""),
-      })),
-      notes: formData.notes,
-      references: formData.references
-        .split(",")
-        .map((r) => r.trim())
-        .filter(Boolean),
-      dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
-    };
-
-    // console.log('problemData', problemData);
-
-    const problem: Problem = {
-      ...problemData,
-      id: existing?.id || generateId(),
-      solutions: formData.solutions,
-    };
-
-    await submitToBackend(problemData);
-    saveProblem(problem);
-    toast.success(existing ? "Problem updated!" : "Problem added!");
-    navigate(existing ? `/problem/${problem.id}` : "/problems");
-  };
-
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
       <div className="flex flex-row justify-between">
@@ -242,7 +266,11 @@ const AddProblem = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form id="problemForm" onSubmit={handleSubmit} className="space-y-5">
+              <form
+                id="problemForm"
+                onSubmit={handleSubmit}
+                className="space-y-5"
+              >
                 <div className="space-y-2">
                   <Label>Title *</Label>
                   <Input
@@ -402,16 +430,24 @@ const AddProblem = () => {
                             placeholder="e.g. Brute Force"
                             value={sol.title}
                             onChange={(e) =>
-                              updatePath(`solutions.${formData.solutions.findIndex(s => s.id === sol.id)}.title`, e.target.value)
+                              updatePath(
+                                `solutions.${formData.solutions.findIndex((s) => s.id === sol.id)}.title`,
+                                e.target.value,
+                              )
                             }
                           />
                         </div>
                         <div className="space-y-2">
                           <Label>Language</Label>
-                            <Select
-                              value={sol.language}
-                              onValueChange={(v) => updatePath(`solutions.${formData.solutions.findIndex(s => s.id === sol.id)}.language`, v)}
-                            >
+                          <Select
+                            value={sol.language}
+                            onValueChange={(v) =>
+                              updatePath(
+                                `solutions.${formData.solutions.findIndex((s) => s.id === sol.id)}.language`,
+                                v,
+                              )
+                            }
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select" />
                             </SelectTrigger>
@@ -432,7 +468,10 @@ const AddProblem = () => {
                           placeholder="Paste your solution code here..."
                           value={sol.code}
                           onChange={(e) =>
-                            updatePath(`solutions.${formData.solutions.findIndex(s => s.id === sol.id)}.code`, e.target.value)
+                            updatePath(
+                              `solutions.${formData.solutions.findIndex((s) => s.id === sol.id)}.code`,
+                              e.target.value,
+                            )
                           }
                         />
                       </div>

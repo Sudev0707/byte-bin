@@ -1,8 +1,8 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
-import { getProblems, saveProblem } from "@/utils/localStorage";
+import { useUser } from "@clerk/clerk-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { axiosInstance } from "../api/axios.js";
 import {
   Table,
   TableBody,
@@ -19,42 +19,37 @@ import {
   CalendarDays,
   BookOpen,
 } from "lucide-react";
-import { format, isToday, isThisMonth } from "date-fns";
-import { log } from "node:console";
-import {axiosInstance} from "../api/axios.js"
+import { isToday, isThisMonth } from "date-fns";
 
 const Dashboard = () => {
-  // const problems = getProblems();
-
+  const { isLoaded, isSignedIn, user } = useUser();
   const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
+  console.log('token : ', token);
+  
+
   useEffect(() => {
-  const loadProblems = async () => {
-    try {
-      // 1️⃣ Load cached data first
-      const cachedProblems = getProblems();
-
-      if (cachedProblems.length) {
-        // const parsed = JSON.parse(cachedProblems);
-        setProblems(cachedProblems);
+    const loadProblems = async () => {
+      if (!isLoaded || !isSignedIn || !user) {
+        setLoading(false);
+        return;
       }
 
-      // 2️⃣ Always check API for latest data
-      const res = await axiosInstance.get("/problems");
-      const apiData = Array.isArray(res.data) ? res.data : [];
-
-      // 3️⃣ Update only if data changed
-      if (JSON.stringify(apiData) !== JSON.stringify(cachedProblems)) {
+      try {
+        const clerkId = user.id;
+        const res = await axiosInstance.get(`/problems?clerkId=${encodeURIComponent(clerkId)}`);
+        const apiData = Array.isArray(res.data) ? res.data : [];
         setProblems(apiData);
-        saveProblem(apiData)
+      } catch (err) {
+        console.error("Error loading problems:", err);
+      } finally {
+        setLoading(false);
       }
+    };
 
-    } catch (err) {
-      console.error("Error loading problems:", err);
-    }
-  };
-
-  loadProblems();
-}, []);
+    loadProblems();
+  }, [isLoaded, isSignedIn, user]);
 
   const stats = useMemo(() => {
     const total = problems.length;
@@ -157,7 +152,7 @@ const Dashboard = () => {
               </TableHeader>
               <TableBody>
                 {recentProblems.map((p) => (
-                  <TableRow key={p.id} className="text-sm " >
+                  <TableRow key={p.id} className="text-sm ">
                     <TableCell className="font-medium text-lg max-w-[300px]">
                       <Link
                         to={`/problem/${p.id}`}
@@ -182,7 +177,7 @@ const Dashboard = () => {
                       </span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {p.createdAt.split("T")[0]}
+                      {p.createdAt}
                     </TableCell>
                   </TableRow>
                 ))}
