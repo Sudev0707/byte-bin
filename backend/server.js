@@ -16,9 +16,7 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-
-const usersRoutes = require("./routes/users");
+app.use(clerkMiddleware());
 
 const startServer = async () => {
   try {
