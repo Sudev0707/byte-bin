@@ -150,6 +150,7 @@ const AddProblem = () => {
     }
 
     const problemData = {
+      userId : user?.id || "",
       title,
       description: formData.description,
       topic,
@@ -166,7 +167,7 @@ const AddProblem = () => {
         .split(",")
         .map((r) => r.trim())
         .filter(Boolean),
-      clerkId: user?.id || "",
+      
       dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
     };
 
