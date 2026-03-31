@@ -10,9 +10,9 @@ const { requireAuth } = require("@clerk/express");
 router.post("/add", requireAuth(), async (req, res) => {
     try {
         const userId = req.auth.userId;
-        const { title, description, topic, language, difficulty, notes, references, code, solutions, clerkId } = req.body;
+        const { title, description, topic, language, difficulty, notes, references, code, solutions } = req.body;
 
-        const newProblem = new Problem({ userId, title, description, topic, language, difficulty, notes, references, code, solutions, clerkId });
+        const newProblem = new Problem({ userId, title, description, topic, language, difficulty, notes, references, code, solutions });
         await newProblem.save();
         res.status(201).json({ message: "Problem saved successfully", data: newProblem })
 
