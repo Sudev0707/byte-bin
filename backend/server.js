@@ -1,13 +1,11 @@
 require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
-// const {ClerkExpressRequireAuth} = require("@clerk/express")
+const mongoose = require("mongoose");
 const { clerkMiddleware, requireAuth } = require("@clerk/express");// Database connection
 const connectDB = require("./config/db");
 
 // Routes
-const addProblemRoutes = require("./routes/addProblemRoute");
-const getProblemRoutes = require("./routes/getProblemRoute");
 const deleteProblemRoute = require("./routes/deleteProblemRoute");
 const problemRoutes = require("./routes/problemRoutes");
 
@@ -18,36 +16,52 @@ app.use(cors());
 app.use(express.json());
 app.use(clerkMiddleware());
 
-const startServer = async () => {
+const startDB = async () => {
   try {
     await connectDB();
-    // Routes
-
-    app.use("/api/problems", problemRoutes);
-    // app.use("/api/problems", addProblemRoutes);
-    // app.use("/api/problems", getProblemRoutes);
-    // app.use("/api/problems", deleteProblemRoute);
-  
-
-    app.get("/", (req, res) => {
-      res.send("Backend running");
-    });
-
-    const PORT = process.env.PORT || 5000;
-    const server = app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-
-    process.on('unhandledRejection', (err) => {
-      console.log('Unhandled Rejection: ', err.message);
-      server.close(() => {
-        process.exit(1);
-      });
-    });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error("MongoDB connection failed:", err);
     process.exit(1);
   }
-};
+}
 
-startServer();
+//routes
+app.use("/api/problems", problemRoutes);
+app.use("/api/delete", deleteProblemRoute);
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, async () => {
+  await startDB();
+  console.log(`Server running on port ${PORT}`);
+});
+
+
+// const startServer = async () => {
+//   try {
+//     await connectDB();
+//     app.use("/api/problems", problemRoutes);
+
+
+//     app.get("/", (req, res) => {
+//       res.send("Backend running");
+//     });
+
+//     const PORT = process.env.PORT || 5000;
+//     const server = app.listen(PORT, () => {
+//       console.log(`Server running on port ${PORT}`);
+//     });
+
+//     process.on('unhandledRejection', (err) => {
+//       console.log('Unhandled Rejection: ', err.message);
+//       server.close(() => {
+//         process.exit(1);
+//       });
+//     });
+//   } catch (error) {
+//     console.error('Failed to start server:', error);
+//     process.exit(1);
+//   }
+// };
+
+// startServer();
