@@ -16,52 +16,33 @@ app.use(cors());
 app.use(express.json());
 app.use(clerkMiddleware());
 
-const startDB = async () => {
+
+
+const startServer = async () => {
   try {
     await connectDB();
+    app.use("/api/problems", problemRoutes);
+
+
+    app.get("/", (req, res) => {
+      res.send("Backend running");
+    });
+
+    const PORT = process.env.PORT || 5000;
+    const server = app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+
+    process.on('unhandledRejection', (err) => {
+      console.log('Unhandled Rejection: ', err.message);
+      server.close(() => {
+        process.exit(1);
+      });
+    });
   } catch (error) {
-    console.error("MongoDB connection failed:", err);
+    console.error('Failed to start server:', error);
     process.exit(1);
   }
-}
+};
 
-//routes
-app.use("/api/problems", problemRoutes);
-app.use("/api/delete", deleteProblemRoute);
-
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, async () => {
-  await startDB();
-  console.log(`Server running on port ${PORT}`);
-});
-
-
-// const startServer = async () => {
-//   try {
-//     await connectDB();
-//     app.use("/api/problems", problemRoutes);
-
-
-//     app.get("/", (req, res) => {
-//       res.send("Backend running");
-//     });
-
-//     const PORT = process.env.PORT || 5000;
-//     const server = app.listen(PORT, () => {
-//       console.log(`Server running on port ${PORT}`);
-//     });
-
-//     process.on('unhandledRejection', (err) => {
-//       console.log('Unhandled Rejection: ', err.message);
-//       server.close(() => {
-//         process.exit(1);
-//       });
-//     });
-//   } catch (error) {
-//     console.error('Failed to start server:', error);
-//     process.exit(1);
-//   }
-// };
-
-// startServer();
+startServer();
