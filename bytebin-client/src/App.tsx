@@ -11,9 +11,13 @@ import AddProblem from "@/pages/AddProblem";
 import ProblemList from "@/pages/ProblemList";
 import ProblemDetail from "@/pages/ProblemDetail";
 import Statistics from "@/pages/Statistics";
+import Profile from "@/pages/Profile";
+import UserProfile from "@/pages/UserProfile";
+import SearchPage from "@/pages/Search";
 import AppSidebar from "@/components/AppSidebar";
 import Footer from "@/components/Footer";
 import NotFound from "./pages/NotFound";
+import { ProblemsProvider } from "@/context/ProblemsContext";
 
 const queryClient = new QueryClient();
 
@@ -48,21 +52,27 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
-          <Route path="/add" element={<ProtectedLayout><AddProblem /></ProtectedLayout>} />
-          <Route path="/edit/:id" element={<ProtectedLayout><AddProblem /></ProtectedLayout>} />
-          <Route path="/problems" element={<ProtectedLayout><ProblemList /></ProtectedLayout>} />
-          <Route path="/problem/:id" element={<ProtectedLayout><ProblemDetail /></ProtectedLayout>} />
-          <Route path="/statistics" element={<ProtectedLayout><Statistics /></ProtectedLayout>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <ProblemsProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
+            <Route path="/add" element={<ProtectedLayout><AddProblem /></ProtectedLayout>} />
+            <Route path="/edit/:id" element={<ProtectedLayout><AddProblem /></ProtectedLayout>} />
+            <Route path="/problems" element={<ProtectedLayout><ProblemList /></ProtectedLayout>} />
+            <Route path="/problem/:id" element={<ProtectedLayout><ProblemDetail /></ProtectedLayout>} />
+            <Route path="/statistics" element={<ProtectedLayout><Statistics /></ProtectedLayout>} />
+            <Route path="/profile" element={<ProtectedLayout><Profile /></ProtectedLayout>} />
+            <Route path="/profile/:id" element={<ProtectedLayout><UserProfile /></ProtectedLayout>} />
+            <Route path="/search" element={<ProtectedLayout><SearchPage /></ProtectedLayout>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ProblemsProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
+

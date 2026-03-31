@@ -70,7 +70,8 @@ const Dashboard = () => {
     return { total, today, month };
   }, [problems]);
 
-  const recentProblems = problems.slice(-5).reverse();
+  // const recentProblems = problems.slice(-5).reverse();
+  const recentProblems = problems.reverse();
 
   const cards = [
     {
@@ -167,10 +168,10 @@ const Dashboard = () => {
                       <span
                         className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           p.difficulty === "Easy"
-                            ? "bg-accent text-accent-foreground"
+                            ? "bg-secondary text-accent-foreground"
                             : p.difficulty === "Medium"
-                              ? "bg-secondary text-secondary-foreground"
-                              : "bg-destructive/10 text-destructive"
+                              ? "bg-secondary text-yellow-500"
+                              : "bg-secondary text-red-400"
                         }`}
                       >
                         {p.difficulty}

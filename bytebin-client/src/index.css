@@ -105,8 +105,16 @@
     @apply border-border;
   }
 
+  html {
+    height: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground font-display antialiased;
+    @apply bg-background text-foreground font-display antialiased min-h-screen;
+  }
+
+  #root {
+    @apply min-h-screen;
   }
 }
 

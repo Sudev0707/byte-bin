@@ -1,8 +1,8 @@
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
-require('dotenv').config();
-
-// Database connection
+// const {ClerkExpressRequireAuth} = require("@clerk/express")
+const { clerkMiddleware, requireAuth } = require("@clerk/express");// Database connection
 const connectDB = require("./config/db");
 
 // Routes
@@ -16,6 +16,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+
+const usersRoutes = require("./routes/users");
 
 const startServer = async () => {
   try {

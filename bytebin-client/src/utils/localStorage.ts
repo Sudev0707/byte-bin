@@ -26,9 +26,14 @@ export interface Session {
   username: string;
   email?: string;
   imageUrl?: string;
+  bio?: string;
 }
 
 const PROBLEMS_KEY = "problems";
+const getProblemsKey = (userId?: string) => {
+  return userId ? `${PROBLEMS_KEY}_${userId}` : PROBLEMS_KEY;
+
+};
 const SESSION_KEY = "session";
 
 // Migration helper to convert old problem format to new format
@@ -57,28 +62,28 @@ const migrateProblem = (problem: any): Problem => {
   return migrated;
 };
 
-export const getProblems = (): Problem[] => {
-  const data = localStorage.getItem(PROBLEMS_KEY);
+export const getProblems = (userId?: string): Problem[] => {
+  const data = localStorage.getItem(getProblemsKey(userId));
   if (!data) return [];
   
   const problems = JSON.parse(data);
   return problems.map(migrateProblem);
 };
 
-export const saveProblem = (problem: Problem) => {
-  const problems = getProblems();
+export const saveProblem = (problem: Problem, userId?: string) => {
+  const problems = getProblems(userId);
   const idx = problems.findIndex((p) => p.id === problem.id);
   if (idx >= 0) {
     problems[idx] = problem;
   } else {
     problems.push(problem);
   }
-  localStorage.setItem(PROBLEMS_KEY, JSON.stringify(problems));
+  localStorage.setItem(getProblemsKey(userId), JSON.stringify(problems));
 };
 
-export const deleteProblem = (id: string) => {
-  const problems = getProblems().filter((p) => p.id !== id);
-  localStorage.setItem(PROBLEMS_KEY, JSON.stringify(problems));
+export const deleteProblem = (id: string, userId?: string) => {
+  const problems = getProblems(userId).filter((p) => p.id !== id);
+  localStorage.setItem(getProblemsKey(userId), JSON.stringify(problems));
 };
 
 export const getSession = (): Session | null => {
@@ -98,8 +103,8 @@ export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
-export const getProblem = (id: string): Problem | null => {
-  return getProblems().find((p) => p.id === id) || null;
+export const getProblem = (id: string, userId?: string): Problem | null => {
+  return getProblems(userId).find((p) => p.id === id) || null;
 };
 
 
@@ -113,8 +118,8 @@ export const exportToJSON = (problems: Problem[]) => {
   URL.revokeObjectURL(url);
 };
 
-export const saveProblems = (problems: Problem[]): void => {
-  localStorage.setItem(PROBLEMS_KEY, JSON.stringify(problems.map(migrateProblem)));
+export const saveProblems = (problems: Problem[], userId?: string): void => {
+  localStorage.setItem(getProblemsKey(userId), JSON.stringify(problems.map(migrateProblem)));
 };
 
 export const exportToCSV = (problems: Problem[]) => {

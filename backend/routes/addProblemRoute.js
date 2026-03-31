@@ -1,6 +1,4 @@
-
-
-const express = require("express")
+const express = require("express");
 const router = express.Router();
 const Problem = require("../models/AddProblems");
 const { requireAuth } = require("@clerk/express");
@@ -16,9 +14,12 @@ router.post("/add", requireAuth, async (req, res) => {
         await newProblem.save();
         res.status(201).json({ message: "Problem saved successfully", data: newProblem })
 
+        
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-})
+
+  
+});
 
 module.exports = router;

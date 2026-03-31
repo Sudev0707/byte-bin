@@ -1,5 +1,6 @@
-import { useMemo } from "react";
-import { getProblems } from "@/utils/localStorage";
+import { useMemo, useEffect } from "react";
+import { useProblems } from "@/context/ProblemsContext";
+import LeetCodeHeatmap from "@/components/LeetCodeHeatmap";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -15,7 +16,11 @@ const COLORS = [
 ];
 
 const Statistics = () => {
-  const problems = getProblems();
+  const { problems, loading } = useProblems();
+  
+  useEffect(() => {
+    // Ensure problems loaded
+  }, [problems]);
 
   const topicData = useMemo(() => {
     const map: Record<string, number> = {};
@@ -44,17 +49,45 @@ const Statistics = () => {
       .map(([date, count]) => ({ date: date.slice(5), count }));
   }, [problems]);
 
-  if (problems.length === 0) {
+  // Activity by Day of Month (1-31 across all months)
+  const dayOfMonthData = useMemo(() => {
+    const map: Record<number, number> = {};
+    problems.forEach((p) => {
+      const date = new Date(p.dateAdded);
+      if (!isNaN(date.getTime())) {
+        const day = date.getDate();
+        map[day] = (map[day] || 0) + 1;
+      }
+    });
+    return Array.from({ length: 31 }, (_, i) => ({
+      day: String(i + 1),
+      count: map[i + 1] || 0
+    }));
+  }, [problems]);
+
+  if (loading || problems.length === 0) {
     return (
       <div className="text-center py-20 text-muted-foreground animate-fade-in">
-        <p className="text-lg">No data yet. Add some problems to see statistics!</p>
+        <p className="text-lg">{loading ? 'Loading...' : 'No data yet. Add some problems to see statistics!'}</p>
       </div>
     );
   }
 
+  // Compute submission data for calendar
+  const submissionData = useMemo(() => {
+    const map: Record<string, number> = {};
+    problems.forEach((p) => {
+      map[p.dateAdded] = (map[p.dateAdded] || 0) + 1;
+    });
+    return Object.entries(map).map(([date, count]) => ({ date, count: count }));
+  }, [problems]);
+
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold font-display">Statistics</h1>
+
+      {/* LeetCode Submission Graph */}
+      <LeetCodeHeatmap data={submissionData} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -116,6 +149,24 @@ const Statistics = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        {/* Activity by Day of Month (1-31) */}
+        {/* <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Activity by Day of Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={dayOfMonthData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 90%)" />
+                <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Bar dataKey="count" fill="hsl(120, 70%, 50%)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card> */}
       </div>
     </div>
   );
