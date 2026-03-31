@@ -193,11 +193,19 @@ const AddProblem = () => {
       const token = await getToken({ template: "default" });
       console.log('TOKEN : ', token);
       
-      const res = await axiosInstance.post("/problems/add", problemData, {
+      // const res = await axiosInstance.post("/problems/add", problemData, {
+      //   headers: {
+      //     Authorization: `Bearer ${token}`,
+      //   },
+      // });
+
+      const res = await axios.post(`https://byte-bin.onrender.com/api/problems/add`, problemData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+
       console.log("Backend saved successfully:", res.data);
       toast.success("Saved to backend!");
       return res.data;
