@@ -7,7 +7,7 @@ const { requireAuth } = require("@clerk/express");
 
 
 // add problem ======================
-router.post("/add", requireAuth, async (req, res) => {
+router.post("/add", requireAuth(), async (req, res) => {
     try {
         const userId = req.auth.userId;
         const { title, description, topic, language, difficulty, notes, references, code, solutions, clerkId } = req.body;
@@ -23,17 +23,28 @@ router.post("/add", requireAuth, async (req, res) => {
 
 // Get all problems for a user ======================
 router.get("/", requireAuth(), async (req, res) => {
-    try {
-        const clerkId = req.auth.userId;
-        const problems = await Problem.find({ clerkId }).sort({ createdAt: -1 });
-        const problemsWithId = problems.map((doc) => ({
-            ...doc.toObject(),
-            id: doc._id.toString(),
-        }));
-        res.status(200).json(problemsWithId);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+  try {
+    if (!req.auth || !req.auth.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
+
+    const clerkId = req.auth.userId;
+    const problems = await Problem.find({ clerkId }).sort({ createdAt: -1 });
+
+    if (!problems || problems.length === 0) {
+      return res.status(200).json([]); // or 404 if you prefer
+    }
+
+    const problemsWithId = problems.map((doc) => ({
+      ...doc.toObject(),
+      id: doc._id.toString(),
+    }));
+
+    res.status(200).json(problemsWithId);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Get problem by ID (public or protected)
