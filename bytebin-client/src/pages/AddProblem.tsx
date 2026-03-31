@@ -183,7 +183,6 @@ const AddProblem = () => {
     };
 
     await submitToBackend(problemData);
-    console.log("problemData: ", problemData);
 
     toast.success(existing ? "Problem updated!" : "Problem added!");
   };
