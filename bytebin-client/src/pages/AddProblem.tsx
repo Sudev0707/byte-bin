@@ -190,7 +190,7 @@ const AddProblem = () => {
   const submitToBackend = async (problemData: any) => {
     try {
       console.log("Attempting backend submit...");
-      const token = await getToken();
+      const token = await getToken({ template: "default" });
       console.log('TOKEN : ', token);
       
       const res = await axiosInstance.post("/problems/add", problemData, {
