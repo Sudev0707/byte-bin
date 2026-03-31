@@ -23,7 +23,7 @@ const startServer = async () => {
     await connectDB();
     app.use("/api/problems", problemRoutes);
 
-
+    app.get("/ping", (req, res) => res.json({ msg: "pong" }));
     app.get("/", (req, res) => {
       res.send("Backend running");
     });
