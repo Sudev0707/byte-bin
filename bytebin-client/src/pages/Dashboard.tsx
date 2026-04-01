@@ -1,6 +1,5 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { axiosInstance } from "../api/axios.js";
 import {
@@ -22,34 +21,14 @@ import {
 import { isToday, isThisMonth } from "date-fns";
 
 const Dashboard = () => {
-  const { isLoaded, isSignedIn, user } = useUser();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("token");
-  console.log('token : ', token);
+  
   
 
   useEffect(() => {
-    const loadProblems = async () => {
-      if (!isLoaded || !isSignedIn || !user) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const clerkId = user.id;
-        const res = await axiosInstance.get(`/problems?clerkId=${encodeURIComponent(clerkId)}`);
-        const apiData = Array.isArray(res.data) ? res.data : [];
-        setProblems(apiData);
-      } catch (err) {
-        console.error("Error loading problems:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProblems();
-  }, [isLoaded, isSignedIn, user]);
+  
+  }, []);
 
   const stats = useMemo(() => {
     const total = problems.length;

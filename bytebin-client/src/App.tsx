@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "@clerk/clerk-react";
+import { getSession } from "@/utils/localStorage";
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
 import Dashboard from "@/pages/Dashboard";
@@ -22,17 +22,11 @@ import { ProblemsProvider } from "@/context/ProblemsContext";
 const queryClient = new QueryClient();
 
 const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isLoaded, isSignedIn } = useAuth();
+  const session = getSession();
   
-  if (!isLoaded) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
+  if (!session?.isLoggedIn) {
+    return <Navigate to="/login" replace />;
   }
-  
-  if (!isSignedIn) return <Navigate to="/login" replace />;
 
   return (
     <div className="flex flex-col min-h-screen w-full">
@@ -75,4 +69,3 @@ const App = () => (
 );
 
 export default App;
-

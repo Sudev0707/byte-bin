@@ -23,7 +23,9 @@ export interface Problem {
 
 export interface Session {
   isLoggedIn: boolean;
+  token?: string;
   username: string;
+  id?: string;
   email?: string;
   imageUrl?: string;
   bio?: string;

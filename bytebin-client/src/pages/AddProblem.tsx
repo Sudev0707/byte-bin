@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUser, useAuth } from "@clerk/clerk-react";
+
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import {
@@ -62,14 +62,10 @@ const LANGUAGES = [
 ];
 
 const AddProblem = () => {
-  const { isSignedIn, user } = useUser();
   const navigate = useNavigate();
   const { id } = useParams();
   const existing = id ? getProblems().find((p) => p.id === id) : null;
-  const { getToken } = useAuth();
-  const token = getToken();
-
-
+ 
 
 
   const initialSolutions: Solution[] =
@@ -166,14 +162,10 @@ const AddProblem = () => {
         .split(",")
         .map((r) => r.trim())
         .filter(Boolean),
-      clerkId: user?.id || "",
       dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
     };
 
-    if (!isSignedIn) {
-      toast.error("Please sign in to add problems");
-      return;
-    }
+ 
 
     const problem: Problem = {
       ...problemData,
@@ -190,12 +182,9 @@ const AddProblem = () => {
   const submitToBackend = async (problemData: any) => {
     try {
       console.log("Attempting backend submit...");
-      const token = await getToken();
-      console.log('TOKEN : ', token);
-      
+
       const res = await axiosInstance.post("/problems/add", problemData, {
         headers: {
-          Authorization: `Bearer ${token}`,
         },
       });
       console.log("Backend saved successfully:", res.data);

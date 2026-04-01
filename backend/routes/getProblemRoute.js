@@ -1,13 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const Problem = require("../models/AddProblems");
-const { requireAuth } = require("@clerk/express");
 
 // Protected GET /
-router.get("/", requireAuth(), async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const clerkId = req.auth.userId; 
-    const problems = await Problem.find({ clerkId }).sort({ createdAt: -1 });
+    const userId = req.auth.userId; 
+    const problems = await Problem.find({ userId }).sort({ createdAt: -1 });
 
  
     res.status(200).json({
@@ -28,7 +27,7 @@ router.get("/:id", async (req, res) => {
 
     const problem = await Problem.findOne({
       _id: id,
-      clerkId: userId, // 🔐 ownership check
+      userId: userId, 
     });
 
     if (!problem) {

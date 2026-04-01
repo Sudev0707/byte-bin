@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from "react";
-import { useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 import { deleteProblem, exportToJSON, exportToCSV } from "@/utils/localStorage";
 import { useProblems } from "@/context/ProblemsContext";
@@ -46,10 +45,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { axiosInstance } from "../api/axios.js";
-import { useAuth } from "@clerk/clerk-react";
 
 const ProblemList = () => {
-  const { user, isSignedIn } = useUser();
   const [problems, setProblems] = useState([]);
   const [search, setSearch] = useState("");
   const [topicFilter, setTopicFilter] = useState("all");
@@ -57,57 +54,16 @@ const ProblemList = () => {
   const [diffFilter, setDiffFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
   const [loading, setLoading] = useState(false);
-  const { getToken } = useAuth();
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const res = await axiosInstance.get("/problems");
 
-  //       const problemsData = Array.isArray(res.data) ? res.data : [];
-
-  //       setProblems(problemsData);
-  //       saveProblems(problemsData);
-  //       setLoading(false);
-  //     } catch (err) {
-  //       console.error("API error:", err);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
 
   // 
   useEffect(() => {
-  const loadProblems = async () => {
-    try {
-      // 1️⃣ Load cached data first
-    
 
-    
-
-      // 2️⃣ Always check API for latest data
-      const clerkIdParam = isSignedIn && user?.id ? `?clerkId=${user.id}` : "";
-      const res = await axiosInstance.get(`/problems${clerkIdParam}`);
-      const apiData = Array.isArray(res.data) ? res.data : [];
-
-      // 3️⃣ Update only if data changed
-      if (JSON.stringify(apiData) !== JSON.stringify(problems)) {
-        setProblems(apiData);
-      
-      }
-
-    } catch (err) {
-      console.error("Error loading problems:", err);
-    }
-  };
-
-  loadProblems();
 }, []);
 
-  // Load handled by context
 
+  // Load handled by context
   const topics = useMemo(
     () => [...new Set(problems.map((p) => p.topic))],
     [problems],
@@ -155,10 +111,8 @@ const ProblemList = () => {
     console.log(id, "iidd");
 
     try {
-      const token = await getToken();
       await axiosInstance.delete(`/problems/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      })
      
       toast.success("Problem deleted");
     } catch (error) {

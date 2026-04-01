@@ -2,17 +2,17 @@
 
 const express = require("express")
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const Problem = require("../models/AddProblems");
-const { requireAuth } = require("@clerk/express");
 
 
 // add problem ======================
-router.post("/add", requireAuth, async (req, res) => {
+router.post("/add", async (req, res) => {
     try {
         const userId = req.auth.userId;
-        const { title, description, topic, language, difficulty, notes, references, code, solutions, clerkId } = req.body;
+        const { title, description, topic, language, difficulty, notes, references, code, solutions } = req.body;
 
-        const newProblem = new Problem({ userId, title, description, topic, language, difficulty, notes, references, code, solutions, clerkId });
+        const newProblem = new Problem({ userId, title, description, topic, language, difficulty, notes, references, code, solutions });
         await newProblem.save();
         res.status(201).json({ message: "Problem saved successfully", data: newProblem })
 
@@ -22,10 +22,10 @@ router.post("/add", requireAuth, async (req, res) => {
 })
 
 // Get all problems for a user ======================
-router.get("/", requireAuth(), async (req, res) => {
+router.get("/", async (req, res) => {
     try {
-        const clerkId = req.auth.userId;
-        const problems = await Problem.find({ clerkId }).sort({ createdAt: -1 });
+        const userId = req.auth.userId;
+        const problems = await Problem.find({ userId }).sort({ createdAt: -1 });
         const problemsWithId = problems.map((doc) => ({
             ...doc.toObject(),
             id: doc._id.toString(),
@@ -55,14 +55,14 @@ router.get("/:id", async (req, res) => {
 });
 
 // Delete problem by ID (protected)
-router.delete("/:id", requireAuth(), async (req, res) => {
+router.delete("/:id", async (req, res) => {
     try {
         const problem = await Problem.findById(req.params.id);
         if (!problem) {
             return res.status(404).json({ message: "Problem not found" });
         }
         // Check ownership
-        if (problem.clerkId !== req.auth.userId) {
+        if (problem.userId !== req.auth.userId) {
             return res.status(403).json({ error: "Unauthorized to delete this problem" });
         }
         await Problem.findByIdAndDelete(req.params.id);
@@ -73,14 +73,14 @@ router.delete("/:id", requireAuth(), async (req, res) => {
 });
 
 // Update problem by ID (protected)
-router.put("/:id", requireAuth(), async (req, res) => {
+router.put("/:id", async (req, res) => {
     try {
         const problem = await Problem.findById(req.params.id);
         if (!problem) {
             return res.status(404).json({ message: "Problem not found" });
         }
         // Check ownership
-        if (problem.clerkId !== req.auth.userId) {
+        if (problem.userId !== req.auth.userId) {
             return res.status(403).json({ error: "Unauthorized to update this problem" });
         }
         const updatedProblem = await Problem.findByIdAndUpdate(req.params.id, req.body, { new: true });

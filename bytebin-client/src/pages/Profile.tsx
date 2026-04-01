@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSession, setSession } from "@/utils/localStorage";
-import { User, Mail, Edit3, Save, Image, FileText } from "lucide-react";
+import { authService, axiosInstance } from "@/api/axios.js";
+import { User, Mail, Edit3, Save, Lock, Eye, EyeOff, Users, FileText, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,76 +15,84 @@ import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Modal,
-  ModalContent,
-  ModalDescription,
-  ModalFooter,
-  ModalHeader,
-  ModalTitle,
-} from "@/components/ui/modal";
-import { useAuth, useSignIn } from "@clerk/clerk-react";
-import { Lock, Link2 as LinkIcon, Users, LogIn } from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ProfileData {
-  firstName?: string;
-  lastName?: string;
+  id?: string;
   username: string;
-  email?: string;
+  email: string;
   imageUrl?: string;
   bio?: string;
+  dateJoined?: string;
 }
 
 const Profile = () => {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const email = user.primaryEmailAddress;
-  const isVerified = email?.verification?.status === "verified";
-
-  // console.log("Email:", email?.emailAddress);
-  // console.log("Verified:", isVerified);
-
-
-
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData>({
-    firstName: "",
-    lastName: "",
     username: "",
+    email: "",
+    imageUrl: "",
+    bio: "",
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [hasPassword, setHasPassword] = useState(false);
-  const [connectProvider, setConnectProvider] = useState("");
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
+  
+  // Get session inside useEffect to avoid stale closure
+  const fetchProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const session = getSession();
+      
+      if (!session?.isLoggedIn) {
+        navigate("/login");
+        return;
+      }
+      
+      const userData = await authService.getCurrentUser();
+      setProfile({
+        id: userData.id,
+        username: userData.username || userData.name || "User",
+        email: userData.email,
+        imageUrl: userData.imageUrl || "",
+        bio: userData.bio || "",
+        dateJoined: userData.dateJoined || userData.createdAt,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to load profile data.",
+        variant: "destructive",
+      });
+      console.error("Profile fetch error:", error);
+      
+      // If unauthorized, redirect to login
+      if (error.response?.status === 401) {
+        navigate("/login");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
 
   // Load profile data on mount
   useEffect(() => {
-    if (isLoaded && isSignedIn && user) {
-      const session = getSession();
-      const firstName = user?.firstName || "";
-      const lastName = user?.lastName || "";
-      const displayName =
-        user?.fullName ||
-        (firstName + " " + lastName).trim() ||
-        user?.username ||
-        session?.username ||
-        "User";
-      const userProfile: ProfileData = {
-        firstName,
-        lastName,
-        username: displayName,
-        email: user.primaryEmailAddress?.emailAddress || session?.email || "",
-        imageUrl: user.imageUrl || session?.imageUrl || "",
-        bio: session?.bio || "",
-      };
-      setProfile(userProfile);
-      setHasPassword(user?.passwordEnabled || false);
-    } else if (!isSignedIn) {
-      navigate("/login");
-    }
-  }, [isLoaded, isSignedIn, user, navigate]);
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -93,45 +102,82 @@ const Profile = () => {
   };
 
   const handleSave = async () => {
-    setLoading(true);
-    if (!user) return;
-    try {
-      // Extend session with profile data
-      const updatedSession = {
-        ...getSession(),
-        ...profile,
-      };
-      // setSession(updatedSession);
-      await user.update({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-      });
-
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been saved.",
-      });
-      setIsEditing(false);
-    } catch (error) {
+    if (!profile.username.trim()) {
       toast({
         title: "Error",
-        description: "Failed to save profile.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePasswordUpdate = async () => {
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match.",
+        description: "Username cannot be empty.",
         variant: "destructive",
       });
       return;
     }
+    
+    setSaveLoading(true);
+    try {
+      const updateData = {
+        username: profile.username.trim(),
+        imageUrl: profile.imageUrl || "",
+        bio: profile.bio || "",
+      };
+      
+      const response = await axiosInstance.put("/auth/profile", updateData);
+      
+      // Update local session with new data
+      const currentSession = getSession();
+      if (currentSession) {
+        const updatedSession = {
+          ...currentSession,
+          username: profile.username.trim(),
+          imageUrl: profile.imageUrl || "",
+          bio: profile.bio || "",
+        };
+        setSession(updatedSession);
+      }
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been saved successfully.",
+      });
+      setIsEditing(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to save profile.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    // Validation
+    if (!oldPassword) {
+      toast({
+        title: "Error",
+        description: "Current password is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!newPassword) {
+      toast({
+        title: "Error",
+        description: "New password is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (newPassword.length < 8) {
       toast({
         title: "Error",
@@ -140,77 +186,69 @@ const Profile = () => {
       });
       return;
     }
-    setLoading(true);
+    
+    setPwdLoading(true);
     try {
-      await user?.updatePassword({
+      await axiosInstance.post("/auth/change-password", {
         currentPassword: oldPassword,
-        newPassword: newPassword,
+        newPassword,
       });
+      
       toast({
         title: "Success",
         description: "Password updated successfully.",
       });
-      navigate("/search?q=sudev97%40outlook.com");
+      
+      // Reset form and close dialog
       setPasswordDialogOpen(false);
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      setShowOldPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.errors?.[0]?.message || "Failed to update password.",
+        description: error.response?.data?.message || "Failed to update password.",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setPwdLoading(false);
     }
   };
 
-  const { signIn } = useSignIn();
-
-  const handleConnectProvider = async (provider: string) => {
-    try {
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description:
-          error.errors?.[0]?.message || "Failed to connect provider.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (!isLoaded) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">
-          Loading profile...
-        </div>
+        <div className="animate-pulse text-muted-foreground text-lg">Loading profile...</div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-6 animate-fade-in max-w-2xl mx-auto">
+      <div className="space-y-6 animate-fade-in max-w-2xl mx-auto p-4 md:p-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold font-display">Profile</h1>
-            <p className="text-muted-foreground">
-              Manage your account details and preferences.
-            </p>
+            <h1 className="text-3xl font-bold font-display tracking-tight">Profile</h1>
+            <p className="text-muted-foreground">Manage your account details and preferences.</p>
           </div>
           <div className="flex gap-2">
             {isEditing ? (
               <>
-                <Button onClick={handleSave} disabled={loading}>
+                <Button onClick={handleSave} disabled={saveLoading || !profile.username.trim()}>
                   <Save className="mr-2 h-4 w-4" />
-                  Save Changes
+                  {saveLoading ? "Saving..." : "Save Changes"}
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(false)}
-                  disabled={loading}
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsEditing(false);
+                    // Reload original data
+                    fetchProfile();
+                  }} 
+                  disabled={saveLoading}
                 >
                   Cancel
                 </Button>
@@ -230,32 +268,26 @@ const Profile = () => {
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="connections">Connections</TabsTrigger>
           </TabsList>
-          <TabsContent value="account" className="mt-6">
+          
+          <TabsContent value="account" className="mt-6 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg ">
+                <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
                   Account Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Avatar */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={profile.imageUrl} />
-                    <AvatarFallback className="text-2xl">
-                      {(
-                        (profile.firstName?.[0] ||
-                          profile.username?.[0] ||
-                          "U") + (profile.lastName?.[0] || "")
-                      )
-                        .slice(0, 2)
-                        .toUpperCase() || "U"}
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={profile.imageUrl} alt={profile.username} />
+                    <AvatarFallback className="text-2xl bg-gradient-to-br from-violet-500 to-blue-500 text-white">
+                      {profile.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   {isEditing && (
-                    <div className="space-y-2 min-w-[200px]">
-                      <Label htmlFor="imageUrl">Avatar URL (optional)</Label>
+                    <div className="space-y-2 min-w-[250px]">
+                      <Label htmlFor="imageUrl">Avatar URL</Label>
                       <Input
                         id="imageUrl"
                         name="imageUrl"
@@ -267,56 +299,36 @@ const Profile = () => {
                   )}
                 </div>
 
-                {/* Username */}
                 <div className="space-y-2">
-                  <Label>Display Name</Label>
+                  <Label htmlFor="username">Username</Label>
                   {isEditing ? (
-                    <div className="flex gap-2">
-                      <Input
-                        name="firstName"
-                        value={profile.firstName || "firstName"}
-                        onChange={handleInputChange}
-                        placeholder="First Name"
-                        className="flex-1 "
-                      />
-                      <Input
-                        name="lastName"
-                        value={profile.lastName || "lastName"}
-                        onChange={handleInputChange}
-                        placeholder="Last Name"
-                        className="flex-1"
-                      />
-                    </div>
+                    <Input
+                      id="username"
+                      name="username"
+                      value={profile.username}
+                      onChange={handleInputChange}
+                      className="w-full"
+                      required
+                    />
                   ) : (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <User className="h-4 w-4" />
-                      {profile.firstName} {profile.lastName}
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">{profile.username}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Email */}
                 <div className="space-y-2">
-                  <Label>Email</Label>
-
-                  <div className="flex  justify-between">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      {profile.email || "Not set"}
+                  <Label htmlFor="email">Email</Label>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span>{profile.email}</span>
                     </div>
-                    <Badge
-                      variant={
-                        email.verification?.status === "verified"
-                          ? "default"
-                          : "secondary"
-                      }
-                    >
-                      {email.verification?.status || "unverified"}
-                    </Badge>
+                    <Badge variant="default">Verified</Badge>
                   </div>
                 </div>
 
-                {/* Bio */}
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   {isEditing ? (
@@ -327,51 +339,171 @@ const Profile = () => {
                       onChange={handleInputChange}
                       placeholder="Tell us about yourself..."
                       rows={4}
+                      className="resize-vertical min-h-[100px]"
                     />
                   ) : (
-                    <div
-                      className={cn(
-                        "p-4 rounded-lg border bg-muted/50 min-h-[80px] flex items-center",
-                        !profile.bio && "text-muted-foreground italic",
-                      )}
-                    >
+                    <div className={cn(
+                      "p-4 rounded-lg border bg-muted/50 min-h-[80px]",
+                      !profile.bio && "text-muted-foreground italic"
+                    )}>
                       {profile.bio ? (
                         <>
-                          <FileText className="mr-2 h-4 w-4 flex-shrink-0" />
+                          <FileText className="mr-2 h-4 w-4 inline" />
                           {profile.bio}
                         </>
-                      ) : (
-                        "No bio set. Add one to personalize your profile!"
-                      )}
+                      ) : "No bio set. Add one to personalize your profile!"}
                     </div>
                   )}
                 </div>
 
-                {/* Status Badge */}
                 <div className="flex gap-2 pt-4">
-                  <Badge variant={profile.bio ? "default" : "secondary"}>
-                    {profile.bio ? "Profile Complete" : "Add Bio to Complete"}
-                  </Badge>
-                  <Badge variant="outline">
-                    Member since {new Date().getFullYear()}
-                  </Badge>
+                  <Badge variant="default">Profile Active</Badge>
+                  {profile.dateJoined && (
+                    <Badge variant="outline">
+                      Joined {new Date(profile.dateJoined).toLocaleDateString()}
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
+
           <TabsContent value="security" className="mt-6">
-            <Card></Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Security
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setPasswordDialogOpen(true)}
+                  className="w-full justify-start"
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Change Password
+                </Button>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p>Enable 2FA, manage sessions, and review recent activity.</p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
+
           <TabsContent value="connections" className="mt-6">
-            <Card></Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Connections
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Social integrations coming soon.</p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
 
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>Enter your current password and new password.</DialogDescription>
+          </DialogHeader>
 
-      <Modal open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-      
-      </Modal>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="oldPassword">Current Password</Label>
+              <div className="relative">
+                <Input
+                  id="oldPassword"
+                  type={showOldPassword ? "text" : "password"}
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  className="pr-10 border-gray-500 "
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-2 h-7 w-7 p-0"
+                  onClick={() => setShowOldPassword(!showOldPassword)}
+                >
+                  {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <div className="relative">
+                <Input
+                  id="newPassword"
+                  type={showNewPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="pr-10 border-gray-500 "
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-2 h-7 w-7 p-0"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pr-10 border-gray-500"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-2 h-7 w-7 p-0"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setPasswordDialogOpen(false);
+                setOldPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handlePasswordUpdate} 
+              disabled={pwdLoading || !oldPassword || !newPassword || newPassword.length < 8}
+            >
+              {pwdLoading ? "Updating..." : "Update Password"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

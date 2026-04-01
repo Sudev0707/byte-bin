@@ -1,35 +1,32 @@
 require('dotenv').config();
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
-// const {ClerkExpressRequireAuth} = require("@clerk/express")
-const { clerkMiddleware, requireAuth } = require("@clerk/express");// Database connection
 const connectDB = require("./config/db");
 
-// Routes
-const addProblemRoutes = require("./routes/addProblemRoute");
-const getProblemRoutes = require("./routes/getProblemRoute");
-const deleteProblemRoute = require("./routes/deleteProblemRoute");
+const authRoutes = require("./routes/auth");
 const problemRoutes = require("./routes/problemRoutes");
+const usersRoutes = require("./routes/users");
 
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors()); // Enable CORS for all routes
+app.use(express.json()); // For parsing application/json
+app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 
 
-const usersRoutes = require("./routes/users");
+// Routes
+
+app.use("/api/auth", authRoutes);
+app.use("/api/problems", problemRoutes);
+app.use("/api/users", usersRoutes);
+
+
 
 const startServer = async () => {
   try {
     await connectDB();
-    // Routes
-
-    app.use("/api/problems", problemRoutes);
-    // app.use("/api/problems", addProblemRoutes);
-    // app.use("/api/problems", getProblemRoutes);
-    // app.use("/api/problems", deleteProblemRoute);
-  
 
     app.get("/", (req, res) => {
       res.send("Backend running");
@@ -53,3 +50,4 @@ const startServer = async () => {
 };
 
 startServer();
+module.exports = app;

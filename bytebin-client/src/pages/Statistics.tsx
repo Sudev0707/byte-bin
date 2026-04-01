@@ -1,5 +1,4 @@
-import { useMemo, useEffect } from "react";
-import { useProblems } from "@/context/ProblemsContext";
+import { useMemo, useEffect, useState } from "react";
 import LeetCodeHeatmap from "@/components/LeetCodeHeatmap";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -16,7 +15,9 @@ const COLORS = [
 ];
 
 const Statistics = () => {
-  const { problems, loading } = useProblems();
+
+  const[problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     // Ensure problems loaded

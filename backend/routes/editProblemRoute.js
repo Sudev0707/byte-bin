@@ -48,7 +48,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
 
     // Update only if problem belongs to the logged-in user
     const updatedProblem = await Problem.findOneAndUpdate(
-      { _id: id, clerkId: userId },
+      { _id: id, userId: userId },
       updateData,
       { new: true, runValidators: true }
     );
