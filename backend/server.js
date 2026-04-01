@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const { clerkMiddleware, ClerkExpressRequireAuth } = require("@clerk/express");// Database connection
+const { clerkMiddleware, requireAuth  } = require("@clerk/express");// Database connection
 const connectDB = require("./config/db");
 
 // Routes
@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(clerkMiddleware());
 app.use(
-  ClerkExpressRequireAuth({
+  clerkMiddleware({
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
     secretKey: process.env.CLERK_SECRET_KEY,
   })
