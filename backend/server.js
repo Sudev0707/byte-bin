@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const { clerkMiddleware, requireAuth } = require("@clerk/express");// Database connection
+const { clerkMiddleware, ClerkExpressRequireAuth } = require("@clerk/express");// Database connection
 const connectDB = require("./config/db");
 
 // Routes
