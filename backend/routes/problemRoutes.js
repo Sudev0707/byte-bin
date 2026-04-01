@@ -3,7 +3,8 @@
 const express = require("express")
 const router = express.Router();
 const Problem = require("../models/AddProblems");
-const { requireAuth } = require("@clerk/express");
+// const { requireAuth } = require("@clerk/express");
+const { requireAuth } = require("@clerk/clerk-sdk-node")      
 
 
 // add problem ======================

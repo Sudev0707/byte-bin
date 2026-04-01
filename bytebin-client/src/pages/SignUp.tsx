@@ -41,7 +41,7 @@ const SignUp = () => {
                 elements: {
                   rootBox: "w-full",
                   // card: "shadow-none border-none bg-transparent",
-                  formButtonPrimary: "bg-violet-600 hover:bg-violet-700",
+formButtonPrimary: "bg-violet-700 hover:bg-violet-800",
                   // dividerRow: "bg-muted",
                   dividerText: "text-muted-foreground",
                   formFieldInput: " border-input",
