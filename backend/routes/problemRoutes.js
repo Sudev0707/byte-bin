@@ -8,13 +8,14 @@ const { requireAuth } = require("@clerk/express");
 
 // add problem ======================
 router.post("/add", requireAuth(), async (req, res) => {
-    console.log("req.auth:", req.auth);
+    console.log("req.auth:", req.auth, req.auth?.userId);
     try {
+        const clerkId = req.auth?.userId;
         const userId = req.auth?.userId;
         if (!userId) return res.status(401).json({ error: "Unauthorized" });
         const { title, description, topic, language, difficulty, notes, references, code, solutions } = req.body;
 
-        const newProblem = new Problem({ userId, title, description: description || "", topic, language, difficulty, notes : notes || "", references : references || [], code: code || "", solutions: solutions || [] });
+        const newProblem = new Problem({ userId, clerkId, title, description: description || "", topic, language, difficulty, notes : notes || "", references : references || [], code: code || "", solutions: solutions || [] });
         await newProblem.save();
         res.status(201).json({ message: "Problem saved successfully", data: newProblem })
 

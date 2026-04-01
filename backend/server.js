@@ -21,11 +21,12 @@ app.use(express.json());
 // Clerk middleware - backend only uses secret key
 app.use(clerkMiddleware());
 
-// Protected route example (optional)
+// Protected route example (optional)p
 app.get("/protected", requireAuth(), (req, res) => {
-  res.json({ message: "You are authenticated!", userId: req.auth.userId });
+  res.json({ message: "You are authenticated! : ss", userId: req.auth.userId, sessionId: req.auth.sessionId  });
 });
 console.log('Clerk PK exists:', !!process.env.CLERK_PUBLISHABLE_KEY);
+console.log('Clerk SK exists:', !!process.env.CLERK_SECRET_KEY);
 // API routes
 app.use("/api/problems", problemRoutes);
 app.use("/api/delete-problem", deleteProblemRoute);

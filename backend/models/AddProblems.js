@@ -15,7 +15,7 @@ const problemSchema = new mongoose.Schema({
         code: String
     }],
     references: [String],
-   
+    clerkId: { type: String, required: true, index: true },
 }, { timestamps: true })
 
 module.exports = mongoose.model("Problems", problemSchema)

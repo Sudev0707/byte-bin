@@ -190,16 +190,10 @@ const AddProblem = () => {
   const submitToBackend = async (problemData: any) => {
     try {
       console.log("Attempting backend submit...");
-      const token = await getToken({ template: "default" });
+      const token = await getToken();
       console.log('TOKEN : ', token);
-      
-      // const res = await axiosInstance.post("/problems/add", problemData, {
-      //   headers: {
-      //     Authorization: `Bearer ${token}`,
-      //   },
-      // });
 
-      const res = await axios.post(`https://byte-bin.onrender.com/api/problems/add`, problemData, {
+      const res = await axiosInstance.post("/problems/add", problemData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
