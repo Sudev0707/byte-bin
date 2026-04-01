@@ -40,8 +40,10 @@ const startServer = async () => {
     await connectDB();
 
     const PORT = process.env.PORT || 5000;
-    const server = app.listen(PORT, () => {
+     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
+      console.log(`Clerk PK configured: ${!!process.env.CLERK_PUBLISHABLE_KEY}`);
+      console.log(`Clerk SK configured: ${!!process.env.CLERK_SECRET_KEY}`);
     });
 
     // Graceful shutdown on unhandled rejections
