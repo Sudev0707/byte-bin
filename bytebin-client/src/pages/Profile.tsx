@@ -329,7 +329,7 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   {isEditing ? (
                     <Textarea
@@ -354,7 +354,7 @@ const Profile = () => {
                       ) : "No bio set. Add one to personalize your profile!"}
                     </div>
                   )}
-                </div>
+                </div> */}
 
                 <div className="flex gap-2 pt-4">
                   <Badge variant="default">Profile Active</Badge>

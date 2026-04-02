@@ -130,7 +130,7 @@ const AppSidebar = () => {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-10 w-10 rounded-full bg-violet-900/90 align-middle border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sidebar-accent"
+                    className="relative h-10 w-10 rounded-full bg-violet-600 align-middle border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sidebar-accent"
                     size="icon"
                   >
                     <Avatar className="h-10 w-10 rounded-full items-center justify-center"> 
