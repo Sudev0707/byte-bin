@@ -53,6 +53,22 @@ export const authService = {
   },
 
 
+  // verify email
+  verifyEmail: async (verificationData) => {
+    const response = await axiosInstance.post("/auth/verify-email", verificationData);
+    if (response.data.token) {
+      localStorage.setItem("bytebin_token", response.data.token);
+      localStorage.setItem('bytebin_user', JSON.stringify(response.data.user));
+    }
+    return response.data;
+  },
+
+   resendVerificationCode: async (data) => {
+    const response = await axiosInstance.post("/auth/resend-otp", data);
+    return response.data;
+  },
+
+
   login: async (credentials) => {
     const response = await axiosInstance.post("/auth/login", credentials);
     if (response.data.token) {
@@ -91,7 +107,7 @@ export const authService = {
     }
   },
 
- };
+};
 
 export const logout = authService.logout;
 export { axiosInstance };
