@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { deleteProblem, exportToJSON, exportToCSV } from "@/utils/localStorage";
-import { useProblems } from "@/context/ProblemsContext";
+import { problemService } from "../api/problemService.js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,10 +57,21 @@ const ProblemList = () => {
 
 
 
-  // 
   useEffect(() => {
+    const fetchProblems = async () => {
+      try {
+        setLoading(true);
+        const data = await problemService.getProblems();
+        setProblems(data);
+      } catch (error) {
+        console.error("Failed to fetch problems:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-}, []);
+    fetchProblems();
+  }, []);
 
 
   // Load handled by context
