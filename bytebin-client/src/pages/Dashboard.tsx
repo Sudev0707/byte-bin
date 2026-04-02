@@ -1,6 +1,5 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { axiosInstance } from "../api/axios.js";
 import {
@@ -11,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { problemService } from "../api/problemService.js";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -22,34 +22,26 @@ import {
 import { isToday, isThisMonth } from "date-fns";
 
 const Dashboard = () => {
-  const { isLoaded, isSignedIn, user } = useUser();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("token");
-  console.log('token : ', token);
+  
   
 
   useEffect(() => {
-    const loadProblems = async () => {
-      if (!isLoaded || !isSignedIn || !user) {
-        setLoading(false);
-        return;
-      }
-
+    const fetchProblems = async () => {
       try {
-        const clerkId = user.id;
-        const res = await axiosInstance.get(`/problems?clerkId=${encodeURIComponent(clerkId)}`);
-        const apiData = Array.isArray(res.data) ? res.data : [];
-        setProblems(apiData);
-      } catch (err) {
-        console.error("Error loading problems:", err);
+        setLoading(true);
+        const data = await problemService.getProblems();
+        setProblems(data);
+      } catch (error) {
+        console.error("Failed to fetch problems:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadProblems();
-  }, [isLoaded, isSignedIn, user]);
+    fetchProblems();
+  }, []);
 
   const stats = useMemo(() => {
     const total = problems.length;
@@ -70,8 +62,7 @@ const Dashboard = () => {
     return { total, today, month };
   }, [problems]);
 
-  // const recentProblems = problems.slice(-5).reverse();
-  const recentProblems = problems.reverse();
+  const recentProblems = problems.slice(-10).reverse();
 
   const cards = [
     {
@@ -178,7 +169,7 @@ const Dashboard = () => {
                       </span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {p.createdAt}
+                      {p.dateAdded}
                     </TableCell>
                   </TableRow>
                 ))}

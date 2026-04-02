@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/clerk-react';
-import { clerkClient } from '@clerk/clerk-sdk-node';
 import { axiosInstance } from '@/api/axios';
 import { 
   Avatar, AvatarFallback, AvatarImage 
@@ -30,15 +28,11 @@ interface UserProfile {
 const UserProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getToken } = useAuth();
-
   const userQuery = useQuery({
     queryKey: ['user', id],
     queryFn: async () => {
       if (!id) throw new Error('User ID required');
-      const token = await getToken();
       const response = await axiosInstance.get(`/api/users/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       return response.data as UserProfile;
     },

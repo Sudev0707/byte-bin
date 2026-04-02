@@ -1,8 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { deleteProblem, exportToJSON, exportToCSV } from "@/utils/localStorage";
-import { useProblems } from "@/context/ProblemsContext";
+import {  exportToJSON, exportToCSV } from "@/utils/localStorage";
+import { problemService } from "../api/problemService.js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,10 +45,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { axiosInstance } from "../api/axios.js";
-import { useAuth } from "@clerk/clerk-react";
 
 const ProblemList = () => {
-  const { user, isSignedIn } = useUser();
   const [problems, setProblems] = useState([]);
   const [search, setSearch] = useState("");
   const [topicFilter, setTopicFilter] = useState("all");
@@ -57,57 +54,35 @@ const ProblemList = () => {
   const [diffFilter, setDiffFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
   const [loading, setLoading] = useState(false);
-  const { getToken } = useAuth();
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const res = await axiosInstance.get("/problems");
 
-  //       const problemsData = Array.isArray(res.data) ? res.data : [];
 
-  //       setProblems(problemsData);
-  //       saveProblems(problemsData);
-  //       setLoading(false);
-  //     } catch (err) {
-  //       console.error("API error:", err);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
-
-  // 
-  useEffect(() => {
-  const loadProblems = async () => {
+  const fetchProblems = useCallback(async () => {
     try {
-      // 1️⃣ Load cached data first
-    
-
-    
-
-      // 2️⃣ Always check API for latest data
-      const clerkIdParam = isSignedIn && user?.id ? `?clerkId=${user.id}` : "";
-      const res = await axiosInstance.get(`/problems${clerkIdParam}`);
-      const apiData = Array.isArray(res.data) ? res.data : [];
-
-      // 3️⃣ Update only if data changed
-      if (JSON.stringify(apiData) !== JSON.stringify(problems)) {
-        setProblems(apiData);
-      
-      }
-
-    } catch (err) {
-      console.error("Error loading problems:", err);
+      setLoading(true);
+      const data = await problemService.getProblems();
+      setProblems(data);
+    } catch (error) {
+      console.error("Failed to fetch problems:", error);
+      toast.error("Failed to fetch problems");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  loadProblems();
-}, []);
+  useEffect(() => {
+    fetchProblems();
+  }, [fetchProblems]);
+
+  // Refetch when window regains focus (e.g. after returning from detail page)
+  useEffect(() => {
+    const handleFocus = () => fetchProblems();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [fetchProblems]);
+
 
   // Load handled by context
-
   const topics = useMemo(
     () => [...new Set(problems.map((p) => p.topic))],
     [problems],
@@ -152,17 +127,18 @@ const ProblemList = () => {
   }, [problems, search, topicFilter, langFilter, diffFilter, sortBy]);
 
   const handleDelete = async (id: string) => {
-    console.log(id, "iidd");
+    // if (!confirm('Are you sure you want to delete this problem?')) return;
 
     try {
-      const token = await getToken();
-      await axiosInstance.delete(`/problems/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-     
-      toast.success("Problem deleted");
+      setLoading(true);
+      await problemService.deleteProblem(id);
+      toast.success("Problem deleted successfully") ;
+      await fetchProblems(); // Refresh list
     } catch (error) {
       console.error(error);
+      toast.error("Failed to delete problem");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -294,9 +270,7 @@ const ProblemList = () => {
                       className="hover:text-primary transition-colors"
                     >
                       {p.title}
-                      <span className="text-xs text-muted-foreground ml-2">
-                        ({p.id})
-                      </span>
+                     
                     </Link>
                   </TableCell>
                   <TableCell>{p.topic}</TableCell>
@@ -336,7 +310,7 @@ const ProblemList = () => {
                               className="h-8 w-8 text-destructive"
                               onClick={() => handleDelete(p.id)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-4 w-4 text-red-600 " />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>

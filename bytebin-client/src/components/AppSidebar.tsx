@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { clearSession } from "@/utils/localStorage";
-import { useAuth, useUser, UserButton } from "@clerk/clerk-react";
+import { clearSession, getSession } from "@/utils/localStorage";
+import { logout } from "../api/axios.js";
 import {
   Code2,
   LayoutDashboard,
@@ -41,24 +41,17 @@ const AppSidebar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const { signOut } = useAuth();
-  const { isLoaded, user } = useUser();
-
-  const getUserInitials = () => {
-    const firstName = user?.firstName?.[0]?.toUpperCase() || "";
-    const lastName = user?.lastName?.[0]?.toUpperCase() || "";
-    return firstName + lastName || "U";
-  };
+  const [session, setSession] = useState(getSession());
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await logout();
     } catch (error) {
-      // Fallback to local session clear if Clerk signout fails
-      console.error("Clerk signout error:", error);
+      console.error("Logout API error:", error);
+    } finally {
+      clearSession();
+      navigate("/login");
     }
-    clearSession();
-    navigate("/login");
   };
 
   // Debounce effect
@@ -74,6 +67,11 @@ const AppSidebar = () => {
       navigate(`/search?q=${encodeURIComponent(debouncedSearchTerm)}`);
     }
   }, [debouncedSearchTerm, navigate]);
+
+  // Refresh session on mount
+  useEffect(() => {
+    setSession(getSession());
+  }, []);
 
   return (
     <>
@@ -122,64 +120,57 @@ const AppSidebar = () => {
                 );
               })}
             </nav>
-
-         
           </div>
 
           {/* User Menu & Logout Button */}
-          <div className="flex items-center gap-2">
-            {/* Profile Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
-                  size="icon"
-                >
-                  <Avatar className="h-8 w-8">
-                    {isLoaded && user?.imageUrl && (
-                      <AvatarImage src={user.imageUrl} />
-                    )}
-                    <AvatarFallback>
-                      <User className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {isLoaded
-                        ? user?.fullName || user?.username || "User"
-                        : "Loading..."}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {isLoaded
-                        ? user?.primaryEmailAddress?.emailAddress || "No email"
-                        : ""}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>View Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="focus:bg-destructive focus:text-destructive-foreground"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {session?.isLoggedIn && (
+            <div className="flex items-center gap-2">
+              {/* Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full bg-violet-900/90 align-middle border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sidebar-accent"
+                    size="icon"
+                  >
+                    <Avatar className="h-10 w-10 rounded-full items-center justify-center"> 
+                      <User className="h-12 w-12 text-zinc-300 " />
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {session?.username}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {session?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>View Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="focus:bg-destructive focus:text-destructive-foreground"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
 
         {/* Mobile Navigation Dropdown */}
+
         {mobileMenuOpen && (
           <div className="lg:hidden absolute top-14 left-0 right-0 bg-sidebar border-b border-sidebar-border shadow-lg">
             <nav className="flex flex-col px-3 py-2">

@@ -1,8 +1,9 @@
-import { useMemo, useEffect } from "react";
-import { useProblems } from "@/context/ProblemsContext";
+import { useMemo } from "react";
+import { useProblems } from '@/context/ProblemsContext';
 import LeetCodeHeatmap from "@/components/LeetCodeHeatmap";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import type { Problem } from '@/types/problem';
 
 const COLORS = [
   "hsl(172, 66%, 40%)",
@@ -16,11 +17,7 @@ const COLORS = [
 ];
 
 const Statistics = () => {
-  const { problems, loading } = useProblems();
-  
-  useEffect(() => {
-    // Ensure problems loaded
-  }, [problems]);
+  const { problems, loading, error } = useProblems();
 
   const topicData = useMemo(() => {
     const map: Record<string, number> = {};
@@ -65,10 +62,27 @@ const Statistics = () => {
     }));
   }, [problems]);
 
-  if (loading || problems.length === 0) {
+  if (loading) {
     return (
       <div className="text-center py-20 text-muted-foreground animate-fade-in">
-        <p className="text-lg">{loading ? 'Loading...' : 'No data yet. Add some problems to see statistics!'}</p>
+        <p className="text-lg">Loading statistics...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20 text-destructive">
+        <p className="text-lg">Error: {error}</p>
+        <p className="text-sm mt-2">Backend may not be running or login required.</p>
+      </div>
+    );
+  }
+
+  if (problems.length === 0) {
+    return (
+      <div className="text-center py-20 text-muted-foreground animate-fade-in">
+        <p className="text-lg">No problems yet. Add some problems to see statistics!</p>
       </div>
     );
   }

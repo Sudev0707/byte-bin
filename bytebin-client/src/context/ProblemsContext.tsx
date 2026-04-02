@@ -1,12 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getProblems, saveProblems } from '@/utils/localStorage';
-import { axiosInstance } from '../api/axios';
-import type { Problem } from '../utils/localStorage';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { problemService } from '@/api/problemService';
+import type { Problem } from '@/types/problem';
 
 interface ProblemsContextType {
   problems: Problem[];
   loading: boolean;
+  error: string | null;
   loadProblems: () => Promise<void>;
   refreshProblems: () => Promise<void>;
 }
@@ -28,45 +27,17 @@ interface ProblemsProviderProps {
 export const ProblemsProvider = ({ children }: ProblemsProviderProps) => {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { getToken } = useAuth();
-  const { isLoaded, isSignedIn, user } = useUser();
-  const userId = user?.id;
+  const [error, setError] = useState<string | null>(null);
 
   const loadProblems = async () => {
     try {
       setLoading(true);
-      if (!isLoaded || !isSignedIn || !userId) {
-        setProblems([]);
-        return;
-      }
-
-      // Always clear problems when switching users to prevent stale data.
-      setProblems([]);
-
-      // Load cached first
-      const cached = getProblems(userId);
-      setProblems(cached);
-
-      // Fetch fresh from API
-      const token = await getToken();
-      // console.log("TOKEN:", token);
-      const res = await axiosInstance.get("/problems", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-      const apiData: Problem[] = Array.isArray(res.data) ? res.data : [];
-
-      // Update if different
-      // Always write cache for the current user after a successful API call.
-   
-      if (JSON.stringify(apiData) !== JSON.stringify(cached)) {
-        setProblems(apiData);
-      }
-    } catch (err) {
-      console.error('Error loading problems:', err);
-      // Prevent stale/cross-user display if API request fails.
-      setProblems([]);
+      setError(null);
+      const data = await problemService.getProblems();
+      setProblems(data);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to load problems');
+      console.error('Load problems error:', err);
     } finally {
       setLoading(false);
     }
@@ -78,11 +49,10 @@ export const ProblemsProvider = ({ children }: ProblemsProviderProps) => {
 
   useEffect(() => {
     loadProblems();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, isSignedIn, userId]);
+  }, []);
 
   return (
-    <ProblemsContext.Provider value={{ problems, loading, loadProblems, refreshProblems }}>
+    <ProblemsContext.Provider value={{ problems, loading, error, loadProblems, refreshProblems }}>
       {children}
     </ProblemsContext.Provider>
   );

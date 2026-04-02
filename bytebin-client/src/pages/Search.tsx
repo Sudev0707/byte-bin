@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@clerk/clerk-react";
 import { useProblems } from "@/context/ProblemsContext";
 import { axiosInstance } from "@/api/axios.js";
 import { Input } from "@/components/ui/input";
@@ -41,45 +40,11 @@ const SearchPage = () => {
   const [searchParams] = useSearchParams();
   const q = searchParams.get("q") || "";
   const [activeTab, setActiveTab] = useState("problems");
-  const { problems, loading: problemsLoading } = useProblems();
   const [filteredProblems, setFilteredProblems] = useState<Problem[]>([]);
 
-  const { getToken } = useAuth();
-
- 
 
 
-  const usersQuery = useQuery({
-    queryKey: ["users", q],
-    queryFn: async () => {
-      if (!q) throw new Error("Query required");
-      const token = await getToken();
-      // console.log("token", token);
 
-      const response = await axiosInstance.post(
-        "/api/users/search",
-        { q },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      return response.data.users;
-    },
-    enabled: !!q && activeTab === "users",
-    staleTime: 5 * 60 * 1000, // 5 min
-  });
-
-  useEffect(() => {
-    if (q) {
-      // Filter problems by title (client-side for now)
-      const filteredP = problems.filter((p) =>
-        p.title.toLowerCase().includes(q.toLowerCase()),
-      );
-      setFilteredProblems(filteredP);
-    }
-  }, [q, problems]);
 
   const getDifficultyBadge = (difficulty?: string) => {
     const variants = {
@@ -134,17 +99,17 @@ const SearchPage = () => {
             Problems ({filteredProblems.length})
           </TabsTrigger>
           <TabsTrigger value="users">
-            Users ({usersQuery.data?.length || 0})
+            {/* Users ({usersQuery.data?.length || 0}) */}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="problems" className="mt-6">
-          {problemsLoading ? (
+          {/* {problemsLoading ? ( */}
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin mr-2" />
               Loading problems...
             </div>
-          ) : filteredProblems.length === 0 ? (
+          {/* ) : filteredProblems.length === 0 ? ( */}
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Code2 className="h-12 w-12 text-muted-foreground mb-4" />
@@ -154,7 +119,7 @@ const SearchPage = () => {
                 <p className="text-muted-foreground">Try a different keyword</p>
               </CardContent>
             </Card>
-          ) : (
+          {/* ) : ( */}
             <Card>
               <CardHeader>
                 <CardTitle>Problems</CardTitle>
@@ -170,7 +135,7 @@ const SearchPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProblems.map((problem) => (
+                    {/* {filteredProblems.map((problem) => (
                       <TableRow key={problem._id || problem.title}>
                         <TableCell className="font-medium">
                           {problem.title}
@@ -185,21 +150,21 @@ const SearchPage = () => {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ))} */}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
-          )}
+          {/* )} */}
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">
-          {usersQuery.isLoading ? (
+          {/* {usersQuery.isLoading ? ( */}
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin mr-2" />
               Searching users...
             </div>
-          ) : usersQuery.error ? (
+          {/* ) : usersQuery.error ? ( */}
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <User className="h-12 w-12 text-destructive mb-4" />
@@ -209,7 +174,7 @@ const SearchPage = () => {
                 </p>
               </CardContent>
             </Card>
-          ) : usersQuery.data?.length === 0 ? (
+          {/* ) : usersQuery.data?.length === 0 ? ( */}
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <User className="h-12 w-12 text-muted-foreground mb-4" />
@@ -217,12 +182,12 @@ const SearchPage = () => {
                 <p className="text-muted-foreground">Try a different keyword</p>
               </CardContent>
             </Card>
-          ) : (
+          {/* ) : ( */}
             <Card>
-              <CardHeader>Users ({usersQuery.data?.length ?? 0})</CardHeader>
+              <CardHeader>Users </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {usersQuery.data?.map((user) => (
+                  {/* {usersQuery.data?.map((user) => (
                     <Card
                       key={user.id}
                       className="hover:shadow-md transition-shadow"
@@ -250,11 +215,11 @@ const SearchPage = () => {
                         </Button>
                       </CardContent>
                     </Card>
-                  ))}
+                  ))} */}
                 </div>
               </CardContent>
             </Card>
-          )}
+          {/* )} */}
         </TabsContent>
       </Tabs>
     </div>

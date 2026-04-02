@@ -1,14 +1,6 @@
-import { useEffect, useState } from "react";
-import { useUser, useAuth } from "@clerk/clerk-react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
-import {
-  getProblems,
-  saveProblem,
-  generateId,
-  type Problem,
-  type Solution,
-} from "@/utils/localStorage";
+import { problemService } from "../api/problemService.js";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,8 +16,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { toast } from "sonner";
-import { addSeconds } from "date-fns";
-import { axiosInstance } from "../api/axios.js";
+import { generateId } from "@/utils/localStorage"; // Keep for new solution IDs only
 
 const TOPICS = [
   "Conditional",
@@ -61,68 +52,103 @@ const LANGUAGES = [
   "Other",
 ];
 
+interface Solution {
+  id: string;
+  title: string;
+  language: string;
+  code: string;
+}
+
+interface FormData {
+  title: string;
+  description: string;
+  topic: string;
+  language: string;
+  difficulty: string;
+  notes: string;
+  code: string;
+  references: string;
+  solutions: Solution[];
+  activeTab: string;
+}
+
 const AddProblem = () => {
-  const { isSignedIn, user } = useUser();
   const navigate = useNavigate();
-  const { id } = useParams();
-  const existing = id ? getProblems().find((p) => p.id === id) : null;
-  const { getToken } = useAuth();
-  const token = getToken();
+  const { id } = useParams<{ id: string }>();
+  const isEdit = !!id;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(isEdit);
 
-
-
-
-  const initialSolutions: Solution[] =
-    existing?.solutions && existing.solutions.length > 0
-      ? existing.solutions
-      : [
-          {
-            id: generateId(),
-            title: "Solution 1",
-            code: "",
-            language: "JavaScript",
-          },
-        ];
-
-  const [formData, setFormData] = useState({
-    title: existing?.title || "",
-    description: existing?.description || "",
-    topic: existing?.topic || "",
-    language: existing?.language || "",
-    difficulty: existing?.difficulty || ("" as Problem["difficulty"] | ""),
-    notes: existing?.notes || "",
-    code: existing?.code || "",
-    references: existing?.references?.join(", ") || "",
-    solutions: initialSolutions,
-    activeTab: initialSolutions[0]?.id || "",
+  const [formData, setFormData] = useState<FormData>({
+    title: "",
+    description: "",
+    topic: "",
+    language: "",
+    difficulty: "",
+    notes: "",
+    code: "",
+    references: "",
+    solutions: [],
+    activeTab: "",
   });
+
+  // Load existing problem if editing
+  useEffect(() => {
+    const loadProblem = async () => {
+      if (!isEdit) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const problem = await problemService.getProblemById(id!);
+        // Populate form data
+        const solutionsWithIds: Solution[] = problem.solutions?.map((sol: any) => ({
+          id: sol.id || sol._id || generateId(),
+          title: sol.title || `Solution 1`,
+          language: sol.language || "JavaScript",
+          code: sol.code || "",
+        })) || [{ id: generateId(), title: "Solution 1", language: "JavaScript", code: "" }];
+        setFormData({
+          title: problem.title || "",
+          description: problem.description || "",
+          topic: problem.topic || "",
+          language: problem.language || "",
+          difficulty: problem.difficulty || "",
+          notes: problem.notes || "",
+          code: problem.code || "",
+          references: Array.isArray(problem.references) ? problem.references.join(", ") : problem.references || "",
+          solutions: solutionsWithIds,
+          activeTab: solutionsWithIds[0]?.id || "",
+        });
+      } catch (error) {
+        toast.error("Failed to load problem for editing");
+        navigate("/problems");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProblem();
+  }, [id, isEdit, navigate]);
 
   const updatePath = (path: string, value: string) => {
     setFormData((prev) => {
-      const newData = { ...prev };
-      const keys = path.includes("[")
-        ? path.match(/(\w+|\d+)/g) || []
-        : path.split(".");
-      let current: any = newData;
-
-      for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i];
-        if (key === undefined) return prev;
-        current = current[key];
-      }
-
-      const lastKey = keys[keys.length - 1];
-      if (Array.isArray(current) && /^\d+$/.test(lastKey)) {
-        const index = parseInt(lastKey);
-        current[index] = {
-          ...current[index],
-          [path.split("[")[1]?.slice(0, -1) || lastKey]: value,
-        };
+      if (path.includes("solutions")) {
+        // Handle solutions array updates
+        const match = path.match(/solutions\[(\d+)\]\.(\w+)/);
+        if (match) {
+          const index = parseInt(match[1]);
+          const field = match[2];
+          const newSolutions = [...prev.solutions];
+          newSolutions[index] = { ...newSolutions[index], [field]: value };
+          return { ...prev, solutions: newSolutions };
+        }
       } else {
-        current[lastKey] = value;
+        // Simple field
+        const newData = { ...prev, [path]: value };
+        return newData;
       }
-
-      return newData;
+      return prev;
     });
   };
 
@@ -136,78 +162,45 @@ const AddProblem = () => {
       !difficulty ||
       solutions.some((s) => !s.title || !s.code)
     ) {
-      console.log("Validation failed:", {
-        title,
-        topic,
-        language,
-        difficulty,
-        solutions,
-      });
       toast.error(
         "Please fill in all required fields: Title, Topic, Language, Difficulty, Solution Title & Code",
       );
       return;
     }
 
+    setIsSubmitting(true);
     const problemData = {
-      userId : user?.id || "",
       title,
       description: formData.description,
       topic,
       language,
-      difficulty: difficulty as Problem["difficulty"],
+      difficulty: difficulty as "Easy" | "Medium" | "Hard",
       code: formData.code,
       solutions: solutions.map((sol) => ({
-        title: String(sol.title || `Solution ${solutions.indexOf(sol) + 1}`),
-        language: String(sol.language || "JavaScript"),
-        code: String(sol.code || ""),
+        title: sol.title,
+        language: sol.language,
+        code: sol.code,
       })),
       notes: formData.notes,
       references: formData.references
         .split(",")
         .map((r) => r.trim())
         .filter(Boolean),
-      
-      dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
     };
 
-    if (!isSignedIn) {
-      toast.error("Please sign in to add problems");
-      return;
-    }
-
-    const problem: Problem = {
-      ...problemData,
-      id: existing?.id || generateId(),
-      solutions: formData.solutions,
-    };
-
-    await submitToBackend(problemData);
-
-    toast.success(existing ? "Problem updated!" : "Problem added!");
-  };
-
-  const submitToBackend = async (problemData: any) => {
     try {
-      console.log("Attempting backend submit...");
-      const token = await getToken();
-      console.log('TOKEN : ', token);
-
-      const res = await axiosInstance.post("/problems/add", problemData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-
-      console.log("Backend saved successfully:", res.data);
-      toast.success("Saved to backend!");
-      return res.data;
-    } catch (error: any) {
-      toast.error(
-        `Backend save failed (${error.response?.status || "Unknown"}), saved locally`,
-      );
-      return null;
+      if (isEdit) {
+        await problemService.updateProblem(id!, problemData);
+        toast.success("Problem updated successfully!");
+      } else {
+        await problemService.createProblem(problemData);
+        toast.success("Problem added successfully!");
+      }
+      navigate("/problems");
+    } catch (error) {
+      toast.error("Failed to save problem");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -217,9 +210,7 @@ const AddProblem = () => {
         toast.error("You must have at least one solution");
         return prev;
       }
-      const newSolutions = prev.solutions.filter(
-        (sol) => sol.id !== solutionId,
-      );
+      const newSolutions = prev.solutions.filter((sol) => sol.id !== solutionId);
       let newActiveTab = prev.activeTab;
       if (prev.activeTab === solutionId) {
         newActiveTab = newSolutions[0]?.id || "";
@@ -232,19 +223,28 @@ const AddProblem = () => {
     });
   };
 
-  const addSolution = () => {
+  const addSolution = useCallback(() => {
     const newSol: Solution = {
       id: generateId(),
       title: `Solution ${formData.solutions.length + 1}`,
-      code: "",
       language: "JavaScript",
+      code: "",
     };
     setFormData((prev) => ({
       ...prev,
       solutions: [...prev.solutions, newSol],
       activeTab: newSol.id,
     }));
-  };
+  }, [formData.solutions.length]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto py-20 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4 text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
@@ -252,132 +252,115 @@ const AddProblem = () => {
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-
-        <Button form="problemForm" type="submit" className="w-full sm:w-auto">
-          <Save className="mr-2 h-4 w-4" /> {existing ? "Update" : "Save"}{" "}
-          Problem
+        <Button form="problemForm" type="submit" disabled={isSubmitting}>
+          <Save className="mr-2 h-4 w-4" /> {isEdit ? "Update" : "Save"} Problem
         </Button>
       </div>
 
-      <div className="flex flex-wrap">
-        <div className="w-[40%] p-2">
+      <form id="problemForm" onSubmit={handleSubmit} className="flex row  gap-4">
+        <div className="w-[40%] space-y-5">
           <Card>
             <CardHeader>
               <CardTitle className="font-display">
-                {existing ? "Edit Problem" : "Add New Problem"}
+                {isEdit ? "Edit Problem" : "Add New Problem"}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <form
-                id="problemForm"
-                onSubmit={handleSubmit}
-                className="space-y-5"
-              >
+            <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <Label>Title *</Label>
+                <Input
+                  placeholder="e.g. Two Sum"
+                  value={formData.title}
+                  onChange={(e) => updatePath("title", e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  placeholder="Brief description of the problem..."
+                  value={formData.description}
+                  onChange={(e) => updatePath("description", e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>Title *</Label>
-                  <Input
-                    placeholder="e.g. Two Sum"
-                    value={formData.title}
-                    onChange={(e) => updatePath("title", e.target.value)}
-                  />
+                  <Label>Topic *</Label>
+                  <Select
+                    value={formData.topic}
+                    onValueChange={(v) => updatePath("topic", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TOPICS.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea
-                    placeholder="Brief description of the problem..."
-                    value={formData.description}
-                    onChange={(e) => updatePath("description", e.target.value)}
-                  />
+                  <Label>Language *</Label>
+                  <Select
+                    value={formData.language}
+                    onValueChange={(v) => updatePath("language", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LANGUAGES.map((l) => (
+                        <SelectItem key={l} value={l}>
+                          {l}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label>Topic *</Label>
-                    <Select
-                      value={formData.topic}
-                      onValueChange={(v) => updatePath("topic", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TOPICS.map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {t}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Language *</Label>
-                    <Select
-                      value={formData.language}
-                      onValueChange={(v) => updatePath("language", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LANGUAGES.map((l) => (
-                          <SelectItem key={l} value={l}>
-                            {l}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Difficulty *</Label>
-                    <Select
-                      value={formData.difficulty}
-                      onValueChange={(v) => updatePath("difficulty", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Easy">Easy</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <Label>Notes / Learnings</Label>
-                  <Textarea
-                    placeholder="What did you learn from this problem?"
-                    value={formData.notes}
-                    onChange={(e) => updatePath("notes", e.target.value)}
-                  />
+                  <Label>Difficulty *</Label>
+                  <Select
+                    value={formData.difficulty}
+                    onValueChange={(v) => updatePath("difficulty", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Easy">Easy</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
 
-                {/* <div className="space-y-2">
-                  <Label>Problem Code</Label>
-                  <Textarea
-                    className="font-mono text-sm min-h-[200px]"
-                    placeholder="Primary solution code for this problem..."
-                    value={formData.code}
-                    onChange={(e) => updatePath("code", e.target.value)}
-                  />
-                </div> */}
+              <div className="space-y-2">
+                <Label>Notes / Learnings</Label>
+                <Textarea
+                  placeholder="What did you learn from this problem?"
+                  value={formData.notes}
+                  onChange={(e) => updatePath("notes", e.target.value)}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label>Reference Links (comma-separated)</Label>
-                  <Input
-                    placeholder="https://leetcode.com/..."
-                    value={formData.references}
-                    onChange={(e) => updatePath("references", e.target.value)}
-                  />
-                </div>
-              </form>
+              <div className="space-y-2">
+                <Label>Reference Links (comma-separated)</Label>
+                <Input
+                  placeholder="https://leetcode.com/..."
+                  value={formData.references}
+                  onChange={(e) => updatePath("references", e.target.value)}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
-        <div className="w-[60%] p-2">
+
+        <div className="w-[60%]">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Solutions</CardTitle>
@@ -401,17 +384,15 @@ const AddProblem = () => {
                     {formData.solutions.map((sol, index) => (
                       <div key={sol.id} className="flex items-center gap-1">
                         <TabsTrigger value={sol.id} className="px-3">
-                          {sol.title || `Solution ${index + 1}`}
+                          {sol.title}
                         </TabsTrigger>
                         {formData.solutions.length > 1 && (
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeSolution(sol.id);
-                            }}
+                            type="button"
+                            onClick={() => removeSolution(sol.id)}
                           >
                             <X className="h-3 w-3" />
                           </Button>
@@ -419,7 +400,7 @@ const AddProblem = () => {
                       </div>
                     ))}
                   </TabsList>
-                  {formData.solutions.map((sol) => (
+                  {formData.solutions.map((sol, index) => (
                     <TabsContent
                       key={sol.id}
                       value={sol.id}
@@ -432,10 +413,7 @@ const AddProblem = () => {
                             placeholder="e.g. Brute Force"
                             value={sol.title}
                             onChange={(e) =>
-                              updatePath(
-                                `solutions.${formData.solutions.findIndex((s) => s.id === sol.id)}.title`,
-                                e.target.value,
-                              )
+                              updatePath(`solutions[${index}].title`, e.target.value)
                             }
                           />
                         </div>
@@ -444,10 +422,7 @@ const AddProblem = () => {
                           <Select
                             value={sol.language}
                             onValueChange={(v) =>
-                              updatePath(
-                                `solutions.${formData.solutions.findIndex((s) => s.id === sol.id)}.language`,
-                                v,
-                              )
+                              updatePath(`solutions[${index}].language`, v)
                             }
                           >
                             <SelectTrigger>
@@ -464,16 +439,13 @@ const AddProblem = () => {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>Code</Label>
+                        <Label>Code *</Label>
                         <Textarea
                           className="font-mono text-sm min-h-[300px]"
                           placeholder="Paste your solution code here..."
                           value={sol.code}
                           onChange={(e) =>
-                            updatePath(
-                              `solutions.${formData.solutions.findIndex((s) => s.id === sol.id)}.code`,
-                              e.target.value,
-                            )
+                            updatePath(`solutions[${index}].code`, e.target.value)
                           }
                         />
                       </div>
@@ -484,9 +456,10 @@ const AddProblem = () => {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
 
 export default AddProblem;
+

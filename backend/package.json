@@ -15,6 +15,7 @@
   "description": "",
   "dependencies": {
     "@clerk/backend": "^3.2.2",
+    "@clerk/clerk-react": "^5.61.4",
     "@clerk/clerk-sdk-node": "^4.13.23",
     "@clerk/express": "^2.0.6",
     "bcryptjs": "^3.0.3",
