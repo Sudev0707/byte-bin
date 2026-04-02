@@ -25,7 +25,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ArrowLeft, Save, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { addSeconds } from "date-fns";
-import { axiosInstance } from "../api/axios.js";
+import { problemService } from "../api/problemService.js"
+import {createProblem, updateProblem, deleteProblem} from "../api/problemService.js";
 
 const TOPICS = [
   "Conditional",
@@ -65,8 +66,7 @@ const AddProblem = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const existing = id ? getProblems().find((p) => p.id === id) : null;
- 
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const initialSolutions: Solution[] =
     existing?.solutions && existing.solutions.length > 0
@@ -132,13 +132,6 @@ const AddProblem = () => {
       !difficulty ||
       solutions.some((s) => !s.title || !s.code)
     ) {
-      console.log("Validation failed:", {
-        title,
-        topic,
-        language,
-        difficulty,
-        solutions,
-      });
       toast.error(
         "Please fill in all required fields: Title, Topic, Language, Difficulty, Solution Title & Code",
       );
@@ -164,8 +157,8 @@ const AddProblem = () => {
         .filter(Boolean),
       dateAdded: existing?.dateAdded || new Date().toISOString().split("T")[0],
     };
-
- 
+    console.log("📤 Submitting problem data:", problemData);
+    setIsSubmitting(true);
 
     const problem: Problem = {
       ...problemData,
@@ -174,27 +167,28 @@ const AddProblem = () => {
     };
 
     await submitToBackend(problemData);
-    console.log("problemData: ", problemData);
-
     toast.success(existing ? "Problem updated!" : "Problem added!");
   };
 
   const submitToBackend = async (problemData: any) => {
     try {
-      console.log("Attempting backend submit...");
-
-      const res = await axiosInstance.post("/problems/add", problemData, {
-        headers: {
-        },
-      });
-      console.log("Backend saved successfully:", res.data);
-      toast.success("Saved to backend!");
-      return res.data;
+      let response;
+      if (existing?.id) {
+        response = await problemService.updateProblem(existing.id, problemData);
+        toast.success("Problem updated successfully");
+      } else {
+        response = await problemService.createProblem(problemData);
+        toast.success("Problem added successfully!");
+      }
+      console.log("📥 Backend response:", response.data);
     } catch (error: any) {
       toast.error(
         `Backend save failed (${error.response?.status || "Unknown"}), saved locally`,
       );
       return null;
+    } finally {
+      setIsSubmitting(false);
+      navigate("/problems");
     }
   };
 
