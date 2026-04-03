@@ -17,6 +17,7 @@ backend/node_modules/
 backend/dist/
 backend/.env
 backend/coverage/
+.env
 
 # Frontend (Vite/React)
 bytebin-client/node_modules/
