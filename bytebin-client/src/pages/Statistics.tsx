@@ -1,5 +1,6 @@
-import { useMemo } from "react";
-import { useProblems } from '@/context/ProblemsContext';
+import { useEffect, useMemo } from "react";
+// import { useProblems } from '@/context/ProblemsContext';
+import { useProblemStore } from '../../store/problemStore';
 import LeetCodeHeatmap from "@/components/LeetCodeHeatmap";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -17,7 +18,14 @@ const COLORS = [
 ];
 
 const Statistics = () => {
-  const { problems, loading, error } = useProblems();
+  const problems = useProblemStore((state) => state.problems);
+  const loading = useProblemStore((state) => state.loading);
+  const error = useProblemStore((state) => state.error);
+  const loadProblems = useProblemStore((state) => state.loadProblems);
+
+  useEffect(() => {
+    loadProblems();
+  }, [loadProblems]);
 
   const topicData = useMemo(() => {
     const map: Record<string, number> = {};
@@ -62,6 +70,15 @@ const Statistics = () => {
     }));
   }, [problems]);
 
+  // Compute submission data for calendar
+  const submissionData = useMemo(() => {
+    const map: Record<string, number> = {};
+    problems.forEach((p) => {
+      map[p.dateAdded] = (map[p.dateAdded] || 0) + 1;
+    });
+    return Object.entries(map).map(([date, count]) => ({ date, count: count }));
+  }, [problems]);
+
   if (loading) {
     return (
       <div className="text-center py-20 text-muted-foreground animate-fade-in">
@@ -87,21 +104,12 @@ const Statistics = () => {
     );
   }
 
-  // Compute submission data for calendar
-  const submissionData = useMemo(() => {
-    const map: Record<string, number> = {};
-    problems.forEach((p) => {
-      map[p.dateAdded] = (map[p.dateAdded] || 0) + 1;
-    });
-    return Object.entries(map).map(([date, count]) => ({ date, count: count }));
-  }, [problems]);
-
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold font-display">Statistics</h1>
 
       {/* LeetCode Submission Graph */}
-      <LeetCodeHeatmap data={submissionData} />
+<LeetCodeHeatmap data={submissionData} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>

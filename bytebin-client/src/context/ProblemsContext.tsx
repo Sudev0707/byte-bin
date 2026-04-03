@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { problemService } from '@/api/problemService';
+import { problemService } from '@/api/problemService.js';
 import type { Problem } from '@/types/problem';
 
 interface ProblemsContextType {

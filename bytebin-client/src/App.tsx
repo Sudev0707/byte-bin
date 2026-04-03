@@ -46,7 +46,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <ProblemsProvider>
+      {/* <ProblemsProvider> */}
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
@@ -63,7 +63,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </ProblemsProvider>
+      {/* </ProblemsProvider> */}
     </TooltipProvider>
   </QueryClientProvider>
 );
