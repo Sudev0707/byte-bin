@@ -43,7 +43,7 @@ const SearchPage = () => {
     try {
       const result = await userService.searchUsers(q, 20);
       setUsers(result.users || []);
-      console.log("Search results:", result);
+      // console.log("Search results:", result);
     } catch (err: any) {
       console.error("Search error:", err);
       setError(err.response?.data?.message || "Failed to search users");

@@ -38,8 +38,8 @@ const Login = () => {
 
       // const { token, user } = response.data;
       const { token, user }: { token: string; user: User } = response;
-      console.log("Token:", token);
-      console.log("User:", user);
+      // console.log("Token:", token);
+      // console.log("User:", user);
 
       setSession({
         isLoggedIn: true,

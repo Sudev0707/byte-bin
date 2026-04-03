@@ -56,7 +56,7 @@ export const authService = {
   // verify email
   verifyEmail: async (verificationData) => {
     const response = await axiosInstance.post("/auth/verify-otp", verificationData);
-    console.log(verificationData)
+    // console.log(verificationData)
     if (response.data.token) {
       localStorage.setItem("bytebin_token", response.data.token);
       localStorage.setItem('bytebin_user', JSON.stringify(response.data.user));

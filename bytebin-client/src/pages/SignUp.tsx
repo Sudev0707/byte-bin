@@ -72,7 +72,7 @@ const SignUp = () => {
         confirmPassword: formData.confirmPassword,
       });
 
-      console.log("Full response:", response);
+      // console.log("Full response:", response);
 
       // Store temporary user ID for verification
       // setTempUserId(response.user.id);
@@ -116,7 +116,7 @@ const SignUp = () => {
     }
 
     try {
-      console.log(email, verificationCode)
+      // console.log(email, verificationCode)
       const response = await authService.verifyEmail({
         // userId: tempUserId,
         email: email,

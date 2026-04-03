@@ -8,7 +8,7 @@ export const userService = {
             const response = await axiosInstance.get(`/users/search-users`, {
                 params: { query, limit }
             });
-            console.log(response);
+            // console.log(response);
             return response.data;
 
         } catch (error) {

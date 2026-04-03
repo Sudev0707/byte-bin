@@ -87,9 +87,9 @@ const UserProfile = () => {
     queryKey: ["userProfile", id],
     queryFn: async () => {
       if (!id) throw new Error("User ID required");
-      console.log("Fetching user profile for ID:", id);
+      // console.log("Fetching user profile for ID:", id);
       const response = await userService.getUserById(id);
-      console.log("Profile response:", response);
+      // console.log("Profile response:", response);
       return response.user as UserProfileData;
     },
     enabled: !!id,
