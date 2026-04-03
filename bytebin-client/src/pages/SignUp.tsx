@@ -71,9 +71,11 @@ const SignUp = () => {
         confirmPassword: formData.confirmPassword,
       });
 
+      console.log("Full response:", response);
+
       // Store temporary user ID for verification
       // setTempUserId(response.user.id);
-      setEmail(response.data.email); 
+      setEmail(response.email); 
       setStep("verify");
       setResendTimer(60)
       toast.success("Verification code sent to your email!");
@@ -113,10 +115,11 @@ const SignUp = () => {
     }
 
     try {
+      console.log(email, verificationCode)
       const response = await authService.verifyEmail({
         // userId: tempUserId,
         email: email,
-        code: verificationCode
+        otp: verificationCode
       });
 
       const { token, user } = response;

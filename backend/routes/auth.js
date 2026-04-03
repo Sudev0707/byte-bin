@@ -116,6 +116,9 @@ router.post('/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
 
+    console.log('verify-otp: ',email, otp);
+    
+
     if (!email || !otp) {
       return res.status(400).json({ error: 'Email, OTP, and verification token are required' });
     }
