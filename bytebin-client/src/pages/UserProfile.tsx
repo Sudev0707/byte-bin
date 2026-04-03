@@ -80,7 +80,7 @@ const UserProfile = () => {
 
   // Get current user to check if viewing own profile
   const currentSession = getSession();
-  const isOwnProfile = currentSession?._id === id;
+  const isOwnProfile = currentSession?.id === id;
 
   // Fetch user profile
   const profileQuery = useQuery({
