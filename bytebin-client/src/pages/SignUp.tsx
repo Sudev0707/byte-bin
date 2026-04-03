@@ -172,7 +172,7 @@ const SignUp = () => {
         <Card className="w-full max-w-md shadow-2xl border-0">
           <CardHeader className="text-center space-y-3 pb-6">
             <h1 className="text-5xl font-black bg-gradient-to-r from-violet-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-lg">
-              byte<span>Bin</span>
+             <span className="text-violet-100" >byte</span>Bin
             </h1>
             <CardTitle className="text-2xl">Verify Your Email</CardTitle>
             <p className="text-muted-foreground text-sm">
@@ -261,7 +261,7 @@ const SignUp = () => {
       <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="text-center space-y-3 pb-6">
           <h1 className="text-5xl font-black bg-gradient-to-r from-violet-600 via-pink-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-lg">
-            byte<span>Bin</span>
+           <span className="text-violet-100" >byte</span>Bin
           </h1>
           <p className="text-muted-foreground text-sm text-center">
             Create your account to start tracking problems
