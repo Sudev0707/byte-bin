@@ -50,6 +50,16 @@ router.get("/search-users", async (req, res) => {
             });
             users = Array.from(mergeMap.values());
         }
+
+        // Compute problemsSolved for each user (like /profile/:userId)
+        for (let i = 0; i < users.length; i++) {
+            const userId = users[i]._id;
+            users[i] = {
+                ...users[i].toObject(),
+                problemsSolved: await Problem.countDocuments({ userId: userId })
+            };
+        }
+
         res.json({ success: true, count: users.length, searchTerm, users });
     } catch (error) {
         res.status(500).json({ message: "Internal server error" });

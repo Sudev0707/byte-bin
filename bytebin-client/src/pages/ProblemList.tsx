@@ -15,12 +15,25 @@ import { toast } from "sonner";
 
 const ProblemList = () => {
   const [problems, setProblems] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [search, setSearch] = useState("");
   const [topicFilter, setTopicFilter] = useState("all");
   const [langFilter, setLangFilter] = useState("all");
   const [diffFilter, setDiffFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date-desc");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('bytebin_user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setCurrentUserId(parsedUser._id || parsedUser.id);
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+      }
+    }
+  }, []);
 
 
 
@@ -263,28 +276,32 @@ const ProblemList = () => {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <Link to={`/edit/${p.id}`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive"
-                              onClick={() => handleDelete(p.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600 " />
+                      {currentUserId && p.userId === currentUserId && (
+                        <>
+                          <Link to={`/edit/${p.id}`}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Edit className="h-4 w-4" />
                             </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs">ID: {p.id}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                          </Link>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive"
+                                  onClick={() => handleDelete(p.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-600 " />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">ID: {p.id}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
