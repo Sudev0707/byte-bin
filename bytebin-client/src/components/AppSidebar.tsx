@@ -43,18 +43,7 @@ const AppSidebar = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [session, setSession] = useState(getSession());
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout API error:", error);
-    } finally {
-      clearSession();
-      navigate("/login");
-    }
-  };
-
-  // Debounce effect
+  // Shared search logic
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -67,6 +56,17 @@ const AppSidebar = () => {
       navigate(`/search?q=${encodeURIComponent(debouncedSearchTerm)}`);
     }
   }, [debouncedSearchTerm, navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout API error:", error);
+    } finally {
+      clearSession();
+      navigate("/login");
+    }
+  };
 
   // Refresh session on mount
   useEffect(() => {
@@ -98,7 +98,6 @@ const AppSidebar = () => {
                 <Menu className="h-5 w-5" />
               </Button>
             </div>
-
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => {
@@ -108,7 +107,7 @@ const AppSidebar = () => {
                     key={item.to}
                     to={item.to}
                     className={cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2 text-md font-medium transition-colors",
+                      "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
                       active
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -120,6 +119,36 @@ const AppSidebar = () => {
                 );
               })}
             </nav>
+            {/* Desktop Search Bar - Right of Nav Links */}
+            <div className="hidden lg:flex items-center ml-2 flex-1 max-w-md">
+              <div className="relative w-full border-1 rounded-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  className="h-10 pl-10 pr-4 py-2 bg-sidebar/50 border border-gray-500 backdrop-blur-sm hover:border-sidebar-accent focus:border-sidebar-accent focus:ring-1 focus:ring-sidebar-accent text-sidebar-foreground placeholder-sidebar-muted-foreground transition-all rounded-md w-full"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSearchTerm(value);
+                    if (value.length >= 2) {
+                      // Navigate after typing stops (debounced in useEffect)
+                      setIsTyping(true);
+                    } else if (value.length === 0) {
+                      // Clear search if empty
+                      if (location.pathname === "/search") {
+                        navigate("/");
+                        setSearchTerm("");
+                      }
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && searchTerm.length >= 2) {
+                      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+                    }
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* User Menu & Logout Button */}
@@ -133,7 +162,7 @@ const AppSidebar = () => {
                     className="relative h-10 w-10 rounded-full bg-violet-600 align-middle border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sidebar-accent"
                     size="icon"
                   >
-                    <Avatar className="h-10 w-10 rounded-full items-center justify-center"> 
+                    <Avatar className="h-10 w-10 rounded-full items-center justify-center">
                       <User className="h-12 w-12 text-zinc-300 " />
                     </Avatar>
                   </Button>
@@ -174,14 +203,13 @@ const AppSidebar = () => {
         {mobileMenuOpen && (
           <div className="lg:hidden absolute top-14 left-0 right-0 bg-sidebar border-b border-sidebar-border shadow-lg">
             <nav className="flex flex-col px-3 py-2">
-              {/* Mobile Searchbar */}
+              {/* Mobile Searchbar - Simplified since desktop shared */}
               <div className="mb-6 p-3 border-b border-sidebar-border">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input
                     className="pl-10 h-11 w-full bg-sidebar/80 backdrop-blur-sm border-sidebar-border hover:border-sidebar-accent focus:border-sidebar-accent focus:ring-sidebar-accent text-sidebar-foreground placeholder-sidebar-muted-foreground transition-colors"
                     placeholder="Search users & problems..."
-                    // name="search"
                     autoComplete="off"
                     value={searchTerm}
                     onChange={(e) => {

@@ -25,7 +25,7 @@ export interface Session {
   isLoggedIn: boolean;
   token?: string;
   username: string;
-  id?: string;
+  _id?: string;
   email?: string;
   imageUrl?: string;
   bio?: string;
