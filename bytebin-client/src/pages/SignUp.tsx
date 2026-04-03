@@ -4,10 +4,11 @@ import { setSession, getSession } from "@/utils/localStorage";
 import { axiosInstance } from "@/api/axios";
 import {authService} from "../api/axios.js"
 import { Button } from "@/components/ui/button";
+import { User } from "@/types/user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, User, Mail, Lock, KeyRound } from "lucide-react";
+import { Loader2, User as UserIcon, Mail, Lock, KeyRound } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
 
@@ -122,13 +123,13 @@ const SignUp = () => {
         otp: verificationCode
       });
 
-      const { token, user } = response;
+      const { token, user }: { token: string; user: User } = response;
       
       // Set session after successful verification
       setSession({
         isLoggedIn: true,
         token,
-        id: user.id,
+        id: user._id,
         username: user.username,
         email: user.email,
       });
@@ -279,7 +280,7 @@ const SignUp = () => {
                 htmlFor="username"
                 className="text-sm font-medium flex items-center gap-2"
               >
-                <User className="h-4 w-4" />
+                <UserIcon className="h-4 w-4" />
                 Username
               </Label>
               <Input

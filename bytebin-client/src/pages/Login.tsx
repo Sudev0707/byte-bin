@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, User, Lock } from "lucide-react";
+import { Loader2, User as UserIcon, Lock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
+import { User } from "@/types/user";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -36,14 +37,14 @@ const Login = () => {
       const response = await authService.login({ email, password });
 
       // const { token, user } = response.data;
-      const { token, user } = response;
+      const { token, user }: { token: string; user: User } = response;
       console.log("Token:", token);
       console.log("User:", user);
 
       setSession({
         isLoggedIn: true,
         token,
-        id: user.id,
+        id: user._id,
         username: user.username,
         email: user.email,
       });
@@ -101,7 +102,7 @@ const Login = () => {
                 htmlFor="username"
                 className="text-sm font-medium flex items-center gap-2"
               >
-                <User className="h-4 w-4" />
+                <UserIcon className="h-4 w-4" />
                 Email
               </Label>
               <Input
@@ -152,7 +153,7 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="pt-6 pb-4 border-t border-border">
+          {/* <div className="pt-6 pb-4 border-t border-border">
             <Button
               type="button"
               variant="secondary"
@@ -163,7 +164,7 @@ const Login = () => {
               <User className="h-4 w-4" />
               Try Demo Account (username: demo, pass: 1234)
             </Button>
-          </div>
+          </div> */}
 
           <div className="text-center pt-2">
             <p className="text-xs text-muted-foreground">

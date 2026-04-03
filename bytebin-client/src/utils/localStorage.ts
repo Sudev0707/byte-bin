@@ -21,14 +21,14 @@ export interface Problem {
   createdAt?: string;
 }
 
+import { User } from '../types/user';
+
 export interface Session {
   isLoggedIn: boolean;
   token?: string;
+  id: string;
   username: string;
-  _id?: string;
-  email?: string;
-  imageUrl?: string;
-  bio?: string;
+  email: string;
 }
 
 const PROBLEMS_KEY = "problems";
@@ -90,7 +90,7 @@ export const deleteProblem = (id: string, userId?: string) => {
 
 export const getSession = (): Session | null => {
   const data = localStorage.getItem(SESSION_KEY);
-  return data ? JSON.parse(data) : null;
+  return data ? (JSON.parse(data) as Session) : null;
 };
 
 export const setSession = (session: Session) => {
