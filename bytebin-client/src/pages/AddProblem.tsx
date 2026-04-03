@@ -88,9 +88,25 @@ const AddProblem = () => {
     notes: "",
     code: "",
     references: "",
-    solutions: [],
+    solutions: [
+    {
+      id: generateId(), 
+      title: "Solution 1",
+      language: "JavaScript",
+      code: "",
+    }
+  ],
     activeTab: "",
   });
+
+  useEffect(() => {
+  if (formData.solutions.length > 0 && !formData.activeTab) {
+    setFormData(prev => ({
+      ...prev,
+      activeTab: prev.solutions[0].id
+    }));
+  }
+}, []);
 
   // Load existing problem if editing
   useEffect(() => {
