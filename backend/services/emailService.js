@@ -1,13 +1,27 @@
 const nodemailer = require('nodemailer');
 
 // Configure email transporter (using Gmail as example - FREE)
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_APP_PASSWORD
+//     }
+// });
+
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_APP_PASSWORD
-    }
+    },
+    family: 4, // FORCE IPv4 - THIS FIXES THE ISSUE
+    connectionTimeout: 10000,
+    socketTimeout: 10000
 });
+
 
 // Verify connection on startup
 transporter.verify((error, success) => {
