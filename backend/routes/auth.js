@@ -9,8 +9,8 @@ const { generateOTP, sendOTPEmail } = require('../services/emailService');
 const router = express.Router();
 
 // Generate JWT
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const generateToken = ({ userId, username }) => {
+  return jwt.sign({ id: userId, username }, process.env.JWT_SECRET, { expiresIn: '7d' });
 }
 // Generate temporary token for storing registration data
 const generateTempToken = (userData) => {
@@ -185,7 +185,7 @@ router.post('/verify-otp', async (req, res) => {
     await OTP.deleteOne({ _id: otpRecord._id });
 
     // Generate auth token
-    const token = generateToken(user._id);
+    const token = generateToken({ userId: user._id, username: user.username });
 
     // Update lastLogin
     user.lastLogin = new Date();
@@ -288,7 +288,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate JWT
-    const token = generateToken(user._id);
+    const token = generateToken({ userId: user._id, username: user.username });
 
     // Update lastLogin
     user.lastLogin = new Date();

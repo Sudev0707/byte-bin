@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { userService } from "@/api/userService";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChatInterface } from "@/components/ChatInterface";
 import {
   User,
   Mail,
@@ -74,13 +75,24 @@ interface FollowingResponse {
 }
 
 const UserProfile = () => {
+  const [activeTab, setActiveTab] = useState("overview");
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+
+
   // Get current user to check if viewing own profile
   const currentSession = getSession();
   const isOwnProfile = currentSession?.id === id;
+
+    console.log("🔍 UserProfile Debug:", {
+    urlParamId: id,
+    currentSessionId: currentSession?.id,
+    isOwnProfile: isOwnProfile,
+    typeOfUrlId: typeof id,
+    typeOfSessionId: typeof currentSession?.id,
+  });
 
   // Fetch user profile
   const profileQuery = useQuery({
@@ -89,7 +101,7 @@ const UserProfile = () => {
       if (!id) throw new Error("User ID required");
       // console.log("Fetching user profile for ID:", id);
       const response = await userService.getUserById(id);
-      // console.log("Profile response:", response);
+      console.log("Profile response:", response);
       return response.user as UserProfileData;
     },
     enabled: !!id,
@@ -242,9 +254,12 @@ const UserProfile = () => {
   const initials = user.username?.slice(0, 2).toUpperCase() || "U";
 
   return (
-    <div className="container mx-auto space-y-6 p-4 md:p-6 lg:p-8 max-w-6xl min-h-screen">
-      <div className="flex flex-wrap  ">
-        <div className="flex flex-col w-[30%] p-2 gap-4  rounded-lg sticky " >
+    <div className="container mx-auto space-y-0 md:p-6 lg:p-0 max-w-6xl min-h-screen">
+      <Button variant="ghost" size="lg" onClick={() => navigate(-1)}>
+        {"<"} Back
+      </Button>
+      <div className="flex flex-wrap border  ">
+        <div className="flex flex-col w-[30%] p-2 gap-4  rounded-lg sticky ">
           {/* Header */}
           <div className="text-center mb-8">
             <Avatar className="h-24 w-24 mx-auto mb-6 ring-4 ring-background shadow-lg">
@@ -253,70 +268,66 @@ const UserProfile = () => {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <h1 className="text-2xl md:text-3xl font-bold font-display bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl md:text-2xl font-bold font-display bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent mb-2">
               {user.username}
             </h1>
+            <p>{user._id}</p>
             <p className="text-muted-foreground mb-4">
               Member since {new Date(user.dateJoined).toLocaleDateString()}
             </p>
 
-            <div className="flex flex-wrap gap-2 justify-center mb-6">
-              <Badge variant="default" className="text-md px-4 py-2">
+            <div className="flex flex-col gap-2 justify-center mb-6 px-6">
+              <Badge variant="secondary" className="text-sm px-4 py-2">
                 <Award className="mr-1 h-4 w-4" />
                 {user.problemsSolved?.toLocaleString() || 0} solved
               </Badge>
-              {/* <Badge variant="secondary" className="text-lg px-4 py-2">
-            <Users className="mr-1 h-4 w-4" />
-            {user.followersCount || 0} followers
-          </Badge> */}
-              <Badge variant="outline" className="text-md px-4 py-2">
+              <Badge variant="secondary" className="text-sm px-4 py-2">
+                <Users className="mr-1 h-4 w-4" />
+                {user.followersCount || 0} followers
+              </Badge>
+              <Badge variant="secondary" className="text-sm px-4 py-2">
                 <Share2 className="mr-1 h-4 w-4" />
                 {user.sharedCount || 0} shared
               </Badge>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-md mx-auto">
-              {/* {!isOwnProfile && (
-            <Button 
-              size="lg" 
-              className="flex-1 font-semibold" 
-              onClick={handleFollow}
-              disabled={followMutation.isPending}
-            >
-              {followMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : user.isFollowing ? (
-                <>
-                  <UserMinus className="mr-2 h-4 w-4" />
-                  Unfollow
-                </>
-              ) : (
-                <>
-                  <UserPlus className="mr-2 h-4 w-4" />
+            <div className="flex flex-col ustify-center max-w-md mx-auto px-6"></div>
+
+            <div className="flex flex-col sm:flex-row gap-3 px-5 justify-center max-w-md mx-auto">
+              {false && (
+                <Button
+                  size="lg"
+                  className="flex-1 font-semibold"
+                  onClick={() => {}}
+                  disabled={false}
+                >
                   Follow
-                </>
+                </Button>
               )}
-            </Button>
-          )} */}
-              {/* <Button variant="outline" size="lg" className="flex-1" asChild>
-            <a href={`mailto:${user.email}`}>
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Message
-            </a>
-          </Button> */}
-              <Button variant="ghost" size="lg" onClick={() => navigate(-1)}>
-                Back
+              <Button
+                variant="default"
+                size="lg"
+                className="flex-1 rounded-3xl py-2"
+                onClick={() => setActiveTab("chat")}
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Message
               </Button>
             </div>
           </div>
         </div>
         <div className=" w-[70%] p-0 gap-4">
           {/* Tabs */}
-          <Tabs defaultValue="overview" className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-14">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="stats">Stats</TabsTrigger>
               <TabsTrigger value="recent">Recent</TabsTrigger>
+              <TabsTrigger value="chat">Chat</TabsTrigger>
               {/* <TabsTrigger value="following">Following</TabsTrigger>
           <TabsTrigger value="followers">Followers</TabsTrigger> */}
             </TabsList>
@@ -490,6 +501,24 @@ const UserProfile = () => {
                       </p>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="chat" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5" />
+                    Chat with {user.username}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-1">
+                  <ChatInterface
+                    recipientId={user._id}
+                    recipientName={user.username}
+                    recipientAvatar={user.avatar}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>

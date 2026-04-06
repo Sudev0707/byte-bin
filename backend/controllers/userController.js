@@ -8,7 +8,7 @@ const getAllUsers = async (req, res) => {
       success: true,
       users: users.map(user => ({
         id: user._id.toString(),
-        name: user.name,
+        name: user.username,
         username: user.username,
         email: user.email,
         imageUrl: user.imageUrl,
@@ -35,7 +35,7 @@ const searchUsers = async (req, res) => {
     const users = await User.find({})
       .select('-password')
       .or([
-        { name: { $regex: query, $options: 'i' } },
+        { username: { $regex: query, $options: 'i' } },
         { username: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } }
       ])
@@ -43,7 +43,7 @@ const searchUsers = async (req, res) => {
 
     const filteredUsers = users.map(user => ({
       id: user._id.toString(),
-      name: user.name,
+      name: user.username,
       username: user.username,
       email: user.email,
       imageUrl: user.imageUrl,
@@ -67,8 +67,7 @@ const getOrCreateUserProfile = async (userId) => {
       // Create basic user if not exists (shouldn't happen post-login)
       user = new User({
         _id: userId,
-        name: 'User',
-        username: '',
+        username: `User_${userId.toString().slice(-6)}`,
         problemsSolved: 0
       });
       await user.save();
@@ -77,9 +76,9 @@ const getOrCreateUserProfile = async (userId) => {
       await user.save();
     }
 
-    return {
+      return {
       id: user._id.toString(),
-      name: user.name,
+      name: user.username,
       username: user.username,
       email: user.email,
       imageUrl: user.imageUrl,
