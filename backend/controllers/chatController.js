@@ -85,6 +85,8 @@ const getConversations = async (req, res) => {
       })
     );
 
+    // console.log('conversationsWithLastMessage: ', conversationsWithLastMessage)
+
     res.json({ success: true, conversations: conversationsWithLastMessage });
   } catch (error) {
     res.status(500).json({ error: error.message });

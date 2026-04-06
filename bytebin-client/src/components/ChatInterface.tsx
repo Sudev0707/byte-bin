@@ -32,7 +32,7 @@ export function ChatInterface({ recipientId, recipientName, recipientAvatar }) {
   const bytebinUser = bytebinUserRaw ? JSON.parse(bytebinUserRaw) : null;
   const userId = bytebinUser?.id || null;
 
-  console.log("byte user: ", userId);
+  // console.log("byte user: ", userId);
 
   // Get current user from localStorage
   const getCurrentUser = () => {
@@ -106,7 +106,7 @@ useEffect(() => {
 
         const conversationId = convResponse.conversation._id;
         setRoomId(conversationId);
-        console.log("✅ roomId set:", conversationId);
+        // console.log("✅ roomId set:", conversationId);
 
         // Load messages
         const messagesResponse = await chatService.getMessages(conversationId);
@@ -317,7 +317,7 @@ useEffect(() => {
         </Avatar>
         <div>
           <h3 className="font-semibold">
-            {recipientName} {recipientId}
+            {recipientName}
           </h3>
           <p className="text-xs text-muted-foreground">
             {isRecipientOnline ? "🟢 Online" : "🔴 Offline"}
@@ -343,12 +343,12 @@ useEffect(() => {
             const currentUserId = userId;
             const isOwnMessage = msgSenderId === userId;
 
-            console.log("Message comparison => :", {
-              msgSenderId,
-              currentUserId,
-              isOwnMessage,
-              content: msg.content,
-            });
+            // console.log("Message comparison => :", {
+            //   msgSenderId,
+            //   currentUserId,
+            //   isOwnMessage,
+            //   content: msg.content,
+            // });
 
             return (
               <div

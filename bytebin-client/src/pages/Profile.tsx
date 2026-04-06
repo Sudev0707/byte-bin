@@ -1,9 +1,20 @@
-
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSession, setSession } from "@/utils/localStorage";
 import { authService, axiosInstance } from "@/api/axios.js";
-import { User, Mail, Edit3, Save, Lock, Eye, EyeOff, Users, FileText, Image } from "lucide-react";
+import {
+  User,
+  Mail,
+  Edit3,
+  Save,
+  Lock,
+  Eye,
+  EyeOff,
+  Users,
+  FileText,
+  Image,
+  MessageCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +33,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ChatInterface } from "@/components/ChatInterface";
+import { MessagesList } from "@/components/MessagesList";
+
+interface ChatUser {
+  id: string;
+  username: string;
+  imageUrl?: string;
+}
 
 interface ProfileData {
   id?: string;
@@ -51,18 +70,19 @@ const Profile = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [pwdLoading, setPwdLoading] = useState(false);
-  
+  const [selectedChat, setSelectedChat] = useState<ChatUser | null>(null);
+
   // Get session inside useEffect to avoid stale closure
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       const session = getSession();
-      
+
       if (!session?.isLoggedIn) {
         navigate("/login");
         return;
       }
-      
+
       const userData = await authService.getCurrentUser();
       setProfile({
         id: userData.id,
@@ -75,11 +95,12 @@ const Profile = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to load profile data.",
+        description:
+          error.response?.data?.message || "Failed to load profile data.",
         variant: "destructive",
       });
       console.error("Profile fetch error:", error);
-      
+
       // If unauthorized, redirect to login
       if (error.response?.status === 401) {
         navigate("/login");
@@ -110,7 +131,7 @@ const Profile = () => {
       });
       return;
     }
-    
+
     setSaveLoading(true);
     try {
       const updateData = {
@@ -118,9 +139,9 @@ const Profile = () => {
         imageUrl: profile.imageUrl || "",
         bio: profile.bio || "",
       };
-      
+
       const response = await axiosInstance.put("/auth/profile", updateData);
-      
+
       // Update local session with new data
       const currentSession = getSession();
       if (currentSession) {
@@ -159,7 +180,7 @@ const Profile = () => {
       });
       return;
     }
-    
+
     if (!newPassword) {
       toast({
         title: "Error",
@@ -168,7 +189,7 @@ const Profile = () => {
       });
       return;
     }
-    
+
     if (newPassword !== confirmPassword) {
       toast({
         title: "Error",
@@ -177,7 +198,7 @@ const Profile = () => {
       });
       return;
     }
-    
+
     if (newPassword.length < 8) {
       toast({
         title: "Error",
@@ -186,19 +207,19 @@ const Profile = () => {
       });
       return;
     }
-    
+
     setPwdLoading(true);
     try {
       await axiosInstance.post("/auth/change-password", {
         currentPassword: oldPassword,
         newPassword,
       });
-      
+
       toast({
         title: "Success",
         description: "Password updated successfully.",
       });
-      
+
       // Reset form and close dialog
       setPasswordDialogOpen(false);
       setOldPassword("");
@@ -210,7 +231,8 @@ const Profile = () => {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to update password.",
+        description:
+          error.response?.data?.message || "Failed to update password.",
         variant: "destructive",
       });
     } finally {
@@ -221,33 +243,42 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-pulse text-muted-foreground text-lg">Loading profile...</div>
+        <div className="animate-pulse text-muted-foreground text-lg">
+          Loading profile...
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-6 animate-fade-in max-w-2xl mx-auto p-4 md:p-0">
+      <div className="space-y-6 animate-fade-in max-w-5xl mx-auto p-4 md:p-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold font-display tracking-tight">Profile</h1>
-            <p className="text-muted-foreground">Manage your account details and preferences.</p>
+            <h1 className="text-xl font-bold font-display tracking-tight">
+              Profile
+            </h1>
+            <p className="text-muted-foreground">
+              Manage your account details and preferences.
+            </p>
           </div>
           <div className="flex gap-2">
             {isEditing ? (
               <>
-                <Button onClick={handleSave} disabled={saveLoading || !profile.username.trim()}>
+                <Button
+                  onClick={handleSave}
+                  disabled={saveLoading || !profile.username.trim()}
+                >
                   <Save className="mr-2 h-4 w-4" />
                   {saveLoading ? "Saving..." : "Save Changes"}
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setIsEditing(false);
                     // Reload original data
                     fetchProfile();
-                  }} 
+                  }}
                   disabled={saveLoading}
                 >
                   Cancel
@@ -263,13 +294,14 @@ const Profile = () => {
         </div>
 
         <Tabs defaultValue="account" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="connections">Connections</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="account" className="mt-6 space-y-6">
+
+          <TabsContent value="account" className="mt-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -280,7 +312,10 @@ const Profile = () => {
               <CardContent className="space-y-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage src={profile.imageUrl} alt={profile.username} />
+                    <AvatarImage
+                      src={profile.imageUrl}
+                      alt={profile.username}
+                    />
                     <AvatarFallback className="text-2xl bg-gradient-to-br from-violet-500 to-blue-500 text-white">
                       {profile.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
@@ -368,7 +403,7 @@ const Profile = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="security" className="mt-6">
+          <TabsContent value="security" className="mt-2">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -377,8 +412,8 @@ const Profile = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setPasswordDialogOpen(true)}
                   className="w-full justify-start"
                 >
@@ -386,13 +421,15 @@ const Profile = () => {
                   Change Password
                 </Button>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  <p>Enable 2FA, manage sessions, and review recent activity.</p>
+                  <p>
+                    Enable 2FA, manage sessions, and review recent activity.
+                  </p>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="connections" className="mt-6">
+          <TabsContent value="connections" className="mt-2">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -401,9 +438,33 @@ const Profile = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Social integrations coming soon.</p>
+                <p className="text-muted-foreground">
+                  Social integrations coming soon.
+                </p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="messages" className="mt-2">
+            <div className="flex  border rounded-lg overflow-hidden">
+              <MessagesList 
+                onSelectChat={setSelectedChat}
+                className="w-80 border-r flex-shrink-0"
+              />
+              <div className="flex-1 flex flex-col">
+                {selectedChat ? (
+                  <ChatInterface 
+                    recipientId={selectedChat.id}
+                    recipientName={selectedChat.username}
+                    recipientAvatar={selectedChat.imageUrl}
+                  />
+                ) : (
+                  <div className="flex-1 flex items-center justify-center p-8 text-muted-foreground text-lg">
+                    Select a chat to start messaging
+                  </div>
+                )}
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
@@ -412,7 +473,9 @@ const Profile = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
-            <DialogDescription>Enter your current password and new password.</DialogDescription>
+            <DialogDescription>
+              Enter your current password and new password.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -433,11 +496,15 @@ const Profile = () => {
                   className="absolute right-2 top-2 h-7 w-7 p-0"
                   onClick={() => setShowOldPassword(!showOldPassword)}
                 >
-                  {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showOldPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="newPassword">New Password</Label>
               <div className="relative">
@@ -455,11 +522,15 @@ const Profile = () => {
                   className="absolute right-2 top-2 h-7 w-7 p-0"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                 >
-                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showNewPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm New Password</Label>
               <div className="relative">
@@ -477,15 +548,19 @@ const Profile = () => {
                   className="absolute right-2 top-2 h-7 w-7 p-0"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setPasswordDialogOpen(false);
                 setOldPassword("");
@@ -495,9 +570,14 @@ const Profile = () => {
             >
               Cancel
             </Button>
-            <Button 
-              onClick={handlePasswordUpdate} 
-              disabled={pwdLoading || !oldPassword || !newPassword || newPassword.length < 8}
+            <Button
+              onClick={handlePasswordUpdate}
+              disabled={
+                pwdLoading ||
+                !oldPassword ||
+                !newPassword ||
+                newPassword.length < 8
+              }
             >
               {pwdLoading ? "Updating..." : "Update Password"}
             </Button>

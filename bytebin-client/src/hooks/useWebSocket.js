@@ -19,7 +19,7 @@ export function useWebSocket() {
     const baseUrl = apiUrl.replace('/api', '').replace('http', 'ws');
     const wsUrl = `${baseUrl}/ws?token=${session.token}`;
     
-    console.log('Connecting to WebSocket:', wsUrl);
+    // console.log('Connecting to WebSocket:', wsUrl);
     
     wsRef.current = new WebSocket(wsUrl);
     

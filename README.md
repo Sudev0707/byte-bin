@@ -31,6 +31,8 @@ Built with 100% TypeScript for scalability and type safety. Demonstrates full-st
 - **Auth**: Secure login via Clerk (Google/GitHub OAuth).
 - **Forms**: React Hook Form + Zod validation.
 - **Notifications**: Sonner toasts.
+- **Real-time Chat**: 1:1 messaging with typing indicators, online status, unread counts, message history.
+- **WebSocket**: Live bidirectional communication with HTTP fallback for offline messaging.
 
 ## 🛠️ Tech Stack
 
@@ -47,6 +49,7 @@ Built with 100% TypeScript for scalability and type safety. Demonstrates full-st
 | Auth | @clerk/clerk-react |
 | Other | Sonner (toasts), Next Themes (dark mode), Axios |
 | Testing | Vitest, Testing Library |
+| Real-time | Custom useWebSocket hook, reconnecting-websocket |
 
 ### Backend (`backend/`)
 | Category | Technologies |
@@ -55,6 +58,8 @@ Built with 100% TypeScript for scalability and type safety. Demonstrates full-st
 | Database | MongoDB, Mongoose ODM |
 | Utils | dotenv, CORS |
 | Dev | Nodemon |
+| Real-time | WebSocket (ws lib), JWT authentication for connections |
+| Messaging | MongoDB Message/Conversation models, unread tracking |
 
 
 ### Prerequisites
@@ -95,6 +100,15 @@ Base: `http://localhost:5000/api`
 | GET | `/problems/:id` | Get single |
 | PUT | `/problems/:id` | Edit |
 | DELETE | `/problems/:id` | Delete |
+
+## Chat API Endpoints (authenticated)
+Base: `http://localhost:5000/api/chat`
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/conversations` | List user's conversations |
+| GET | `/conversation/:userId` | Get or create 1:1 conversation |
+| GET | `/messages/:roomId` | Fetch message history (paginated) |
+| POST | `/messages/:roomId` | Send message via HTTP (WebSocket fallback)
 
 ## 📱 Screenshots
 <!-- Add screenshots here -->
