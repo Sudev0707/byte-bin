@@ -227,7 +227,7 @@ export function MessagesList({ onSelectChat, className }: MessagesListProps) {
                   <div className="relative flex-shrink-0">
                     <Avatar className="h-11 w-11">
                       <AvatarImage src={chat.imageUrl} />
-                      <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-500 text-white text-sm font-bold">
+                      <AvatarFallback className="bg-gradient-to-br from-purple-700 to-purple-950 text-white text-sm font-bold">
                         {chat.username?.slice(0, 2).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
