@@ -155,7 +155,7 @@ export function MessagesList({ onSelectChat, className }: MessagesListProps) {
 
   if (loading) {
     return (
-      <div className={cn('flex flex-col h-full bg-background border-r', className)}>
+      <div className={cn('flex flex-col h-full bg-secondary border-r', className)}>
         <div className="p-4 border-b">
           <Skeleton className="h-9 w-full" />
         </div>
@@ -175,7 +175,7 @@ export function MessagesList({ onSelectChat, className }: MessagesListProps) {
   }
 
   return (
-    <div className={cn('flex flex-col h-full bg-secondary border-r', className)}>
+    <div className={cn('flex flex-col h-full border-r', className)}>
       {/* Header */}
       <div className="p-4 border-b flex items-center gap-3">
         <h2 className="font-semibold text-lg flex-1">Messages</h2>

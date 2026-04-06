@@ -446,12 +446,12 @@ const Profile = () => {
           </TabsContent>
 
           <TabsContent value="messages" className="mt-2">
-            <div className="flex  border rounded-lg overflow-hidden">
+            <div className="flex bg-slate-950  border rounded-lg overflow-hidden">
               <MessagesList 
                 onSelectChat={setSelectedChat}
                 className="w-80 border-r flex-shrink-0"
               />
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col p-2 border border-l-slate-700">
                 {selectedChat ? (
                   <ChatInterface 
                     recipientId={selectedChat.id}
