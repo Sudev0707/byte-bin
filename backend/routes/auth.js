@@ -399,7 +399,7 @@ router.get('/github/callback',
   }),
   (req, res) => {
     try {
-      const token = generateJWT(req.user);
+      const token = generateToken(req.user);
       const frontendUrl = getFrontendUrl();
       // Redirect to frontend callback with token
       res.redirect(`${frontendUrl}/auth/github/callback?code=${token}`);
@@ -432,7 +432,7 @@ router.get('/google/callback', (req, res, next) => {
     }
 
     try {
-      const token = generateJWT(user);
+      const token = generateToken({ userId: user.id || user._id, username: user.username || user.displayName });
       const frontendUrl = getFrontendUrl();
 
       return res.redirect(
@@ -445,23 +445,23 @@ router.get('/google/callback', (req, res, next) => {
   })(req, res, next);
 });
 
-// router.get('/google/callback',
-//   passport.authenticate('google', {
-//     session: false,
-//     failureRedirect: '/login'
-//   }),
-//   (req, res) => {
-//     try {
-//       const token = generateJWT(req.user);
-//       const frontendUrl = getFrontendUrl();
-//       // Redirect to frontend callback with token
-//       res.redirect(`${frontendUrl}/auth/google/callback?code=${token}`);
-//     } catch (error) {
-//       console.error('Google OAuth callback error:', error);
-//       res.redirect(`${getFrontendUrl()}/login?error=oauth_failed`);
-//     }
-//   }
-// );
+    // router.get('/google/callback',
+    //   passport.authenticate('google', {
+    //     session: false,
+    //     failureRedirect: '/login'
+    //   }),
+    //   (req, res) => {
+    //     try {
+    //       const token = generateToken(req.user);
+    //       const frontendUrl = getFrontendUrl();
+    //       // Redirect to frontend callback with token
+    //       res.redirect(`${frontendUrl}/auth/google/callback?code=${token}`);
+    //     } catch (error) {
+    //       console.error('Google OAuth callback error:', error);
+    //       res.redirect(`${getFrontendUrl()}/login?error=oauth_failed`);
+    //     }
+    //   }
+    // );
 
 
 module.exports = router;
