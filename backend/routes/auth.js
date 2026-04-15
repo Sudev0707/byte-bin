@@ -419,24 +419,49 @@ router.get('/google',
     prompt: 'select_account' // Forces account selection every time
   })
 );
-
-router.get('/google/callback',
-  passport.authenticate('google', {
-    session: false,
-    failureRedirect: '/login'
-  }),
-  (req, res) => {
-    try {
-      const token = generateJWT(req.user);
-      const frontendUrl = getFrontendUrl();
-      // Redirect to frontend callback with token
-      res.redirect(`${frontendUrl}/auth/google/callback?code=${token}`);
-    } catch (error) {
-      console.error('Google OAuth callback error:', error);
-      res.redirect(`${getFrontendUrl()}/login?error=oauth_failed`);
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', { session: false }, (err, user, info) => {
+    if (err) {
+      console.error('🔥 Google Auth Error:', err);
+      return res.redirect(`${getFrontendUrl()}/login?error=server_error`);
     }
-  }
-);
+
+    if (!user) {
+      console.error('⚠️ No user returned:', info);
+      return res.redirect(`${getFrontendUrl()}/login?error=auth_failed`);
+    }
+
+    try {
+      const token = generateJWT(user);
+      const frontendUrl = getFrontendUrl();
+
+      return res.redirect(
+        `${frontendUrl}/auth/google/callback?code=${token}`
+      );
+    } catch (error) {
+      console.error('🔥 Token Error:', error);
+      return res.redirect(`${getFrontendUrl()}/login?error=token_failed`);
+    }
+  })(req, res, next);
+});
+
+// router.get('/google/callback',
+//   passport.authenticate('google', {
+//     session: false,
+//     failureRedirect: '/login'
+//   }),
+//   (req, res) => {
+//     try {
+//       const token = generateJWT(req.user);
+//       const frontendUrl = getFrontendUrl();
+//       // Redirect to frontend callback with token
+//       res.redirect(`${frontendUrl}/auth/google/callback?code=${token}`);
+//     } catch (error) {
+//       console.error('Google OAuth callback error:', error);
+//       res.redirect(`${getFrontendUrl()}/login?error=oauth_failed`);
+//     }
+//   }
+// );
 
 
 module.exports = router;
