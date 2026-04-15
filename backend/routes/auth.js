@@ -430,12 +430,25 @@ router.get('/google/callback', (req, res, next) => {
     }
 
     try {
-      const token = generateToken({ userId: user.id || user._id, username: user.username || user.displayName });
+      const token = generateToken({
+        userId: user.id || user._id,
+        username: user.username
+      });
+
       const frontendUrl = getFrontendUrl();
 
+      // ✅ Encode user safely
+      const userData = encodeURIComponent(JSON.stringify({
+        id: user._id,
+        username: user.username,
+        email: user.email
+      }));
+
+      // ✅ MATCHES YOUR FRONTEND
       return res.redirect(
-        `${frontendUrl}/auth/google/callback?code=${token}`
+        `${frontendUrl}/oauth/callback/google?token=${token}&user=${userData}`
       );
+
     } catch (error) {
       console.error('🔥 Token Error:', error);
       return res.redirect(`${getFrontendUrl()}/login?error=token_failed`);

@@ -30,7 +30,7 @@ const OAuthCallback = () => {
 
       if (!token || !userEncoded || !provider) {
         setStatus("error");
-        setErrorMessage("Invalid OAuth callback - missing token or user data");
+        setErrorMessage("Invalid OAuth callback - missing data");
         setTimeout(() => navigate("/login"), 3000);
         return;
       }
@@ -38,9 +38,9 @@ const OAuthCallback = () => {
       try {
         const user = JSON.parse(decodeURIComponent(userEncoded));
 
-        console.log("OAuth callback - token & user received:", { token: token.substring(0,20)+'...', user });
+        console.log("✅ OAuth Success:", { token, user, provider });
 
-        // Set session properly for app consistency
+        // Save session
         setSession({
           isLoggedIn: true,
           token,
@@ -49,34 +49,87 @@ const OAuthCallback = () => {
           email: user.email,
         });
 
-        // Check if there's a redirect URL stored
-        const redirectUrl = localStorage.getItem("oauth_redirect_url");
-        localStorage.removeItem("oauth_redirect_url");
-
         setStatus("success");
 
-        // Redirect after short delay
         setTimeout(() => {
-          if (redirectUrl && !redirectUrl.includes("/auth/")) {
-            navigate(redirectUrl);
-          } else {
-            navigate("/");
-          }
+          navigate("/");
         }, 1500);
-      } catch (err: any) {
+      } catch (err) {
         console.error("OAuth callback error:", err);
         clearSession();
+
         setStatus("error");
-        setErrorMessage(
-          err.response?.data?.message ||
-            "Authentication failed. Please try again.",
-        );
+        setErrorMessage("Authentication failed. Please try again.");
+
         setTimeout(() => navigate("/login"), 3000);
       }
     };
 
     handleCallback();
   }, [searchParams, provider, navigate]);
+
+  // useEffect(() => {
+  //   const handleCallback = async () => {
+  //     const token = searchParams.get("token");
+  //     const userEncoded = searchParams.get("user");
+  //     const error = searchParams.get("error");
+
+  //     if (error) {
+  //       setStatus("error");
+  //       setErrorMessage(`Authentication failed: ${error}`);
+  //       setTimeout(() => navigate("/login"), 3000);
+  //       return;
+  //     }
+
+  //     if (!token || !userEncoded || !provider) {
+  //       setStatus("error");
+  //       setErrorMessage("Invalid OAuth callback - missing token or user data");
+  //       setTimeout(() => navigate("/login"), 3000);
+  //       return;
+  //     }
+
+  //     try {
+  //       const user = JSON.parse(decodeURIComponent(userEncoded));
+
+  //       console.log("OAuth callback - token & user received:", { token: token.substring(0,20)+'...', user });
+
+  //       // Set session properly for app consistency
+  //       setSession({
+  //         isLoggedIn: true,
+  //         token,
+  //         id: user.id,
+  //         username: user.username,
+  //         email: user.email,
+  //       });
+
+  //       // Check if there's a redirect URL stored
+  //       const redirectUrl = localStorage.getItem("oauth_redirect_url");
+  //       localStorage.removeItem("oauth_redirect_url");
+
+  //       setStatus("success");
+
+  //       // Redirect after short delay
+  //       setTimeout(() => {
+  //         if (redirectUrl && !redirectUrl.includes("/auth/")) {
+  //           navigate(redirectUrl);
+  //         } else {
+  //           navigate("/");
+  //         }
+  //       }, 1500);
+  //     } catch (err: any) {
+  //       console.error("OAuth callback error:", err);
+  //       clearSession();
+  //       setStatus("error");
+  //       setErrorMessage(
+  //         err.response?.data?.message ||
+  //           "Authentication failed. Please try again.",
+  //       );
+  //       setTimeout(() => navigate("/login"), 3000);
+  //     }
+  //   };
+
+  //   handleCallback();
+  // }, [searchParams, provider, navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
