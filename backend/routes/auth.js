@@ -19,12 +19,10 @@ const generateTempToken = (userData) => {
 }
 
 const getFrontendUrl = () => {
-  if (process.env.NODE_ENV === 'production') {
-    return process.env.FRONTEND_URL;
-  }
-  return process.env.FRONTEND_URL;
+  const url = process.env.FRONTEND_URL;
+  console.log("🌐 FRONTEND_URL:", url);
+  return url || "http://localhost:5173";
 };
-
 
 // Register
 router.post('/register', async (req, res) => {
