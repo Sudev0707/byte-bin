@@ -22,39 +22,53 @@ const userSchema = new mongoose.Schema({
   name: { type: String, default: "" },
   sharedProblems: [{ problemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Problems' }, sharedWith: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, sharedAt: { type: String, default: () => new Date().toISOString().split('T')[0] }, permission: { type: String, enum: ['read', 'write'], default: 'read' } }],
   receivedProblems: [{ problemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Problems' }, sharedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, sharedAt: { type: String, default: () => new Date().toISOString().split('T')[0] }, permission: { type: String, enum: ['read', 'write'], default: 'read' } }],
-  dateJoined: { type: String, default: () => new Date().toISOString().split('T')[0] },
+  dateJoined: { type: Date, default: () => new Date().toISOString().split('T')[0] },
 }, { timestamps: true });
 
 // Create text index for search functionality
 userSchema.index({ username: 'text', email: 'text', provider: 'text' });
 
-// ============================================
-// ✅ FIXED pre('save') middleware
-// ============================================
-userSchema.pre('save', function(next) {
-  // If no password or not modified, skip to next middleware
-  if (!this.password || !this.isModified('password')) {
-    return next();
-  }
-  
-  // Hash password using synchronous methods (no callback issues)
-  const salt = bcrypt.genSaltSync(10);
-  this.password = bcrypt.hashSync(this.password, salt);
-  next();
+// userSchema.pre('save', async function (next) {
+
+//   if (this.googleId || this.githubId) {
+//     console.log('Skipping password hash for social user:', this.email);
+//     return next();
+//   }
+
+//   if (!this.password || !this.isModified('password')) {
+//     return next();
+//   }
+
+//    try {
+//     const salt = await bcrypt.genSalt(10);
+//     this.password = await bcrypt.hash(this.password, salt);
+//     next(); 
+//   } catch (error) {
+//     next(error); 
+//   }
+// });
+
+userSchema.pre('save', async function() {
+  if (this.googleId || this.githubId) return;
+
+  if (!this.password || !this.isModified('password')) return;
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Method to compare passwords
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Generate username from email if not provided
-userSchema.pre('validate', function(next) {
+// Generate username from email if not provided (OAuth-safe)
+userSchema.pre('validate', async function() {
   if (!this.username && this.email) {
-    this.username = this.email.split('@')[0];
+   this.username = this.email.split('@')[0] + Date.now();
   }
-  next();
 });
+
 
 module.exports = mongoose.model("User", userSchema);
