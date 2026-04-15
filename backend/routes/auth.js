@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const User = require('../models/User');
 const OTP = require('../models/OTP')
 const authMiddleware = require('../middleware/auth');
@@ -16,6 +17,13 @@ const generateToken = ({ userId, username }) => {
 const generateTempToken = (userData) => {
   return jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: '30m' });
 }
+
+const getFrontendUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.FRONTEND_URL || 'https://byte-bin.onrender.com';
+  }
+  return process.env.FRONTEND_URL || 'http://localhost:5173';
+};
 
 
 // Register
@@ -45,7 +53,7 @@ router.post('/register', async (req, res) => {
 
     // Delete any existing OTPs for this email ==================
     await OTP.deleteMany({ email: email.toLowerCase(), purpose: 'registration' });
-    
+
     const otp = generateOTP();
     // 
     const otpRecord = new OTP({
@@ -75,7 +83,7 @@ router.post('/register', async (req, res) => {
       message: 'OTP sent to your email address',
       email: email.toLowerCase()
       // tempToken,
-      
+
     });
 
 
@@ -116,8 +124,8 @@ router.post('/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    console.log('verify-otp: ',email, otp);
-    
+    console.log('verify-otp: ', email, otp);
+
 
     if (!email || !otp) {
       return res.status(400).json({ error: 'Email, OTP, and verification token are required' });
@@ -153,7 +161,7 @@ router.post('/verify-otp', async (req, res) => {
 
     // Create the user account from stored data
     const { username, email: userEmail, password } = otpRecord.userData;
-     const user = new User({
+    const user = new User({
       username,
       email: userEmail,
       password,
@@ -224,7 +232,7 @@ router.post('/resend-otp', async (req, res) => {
     }
 
     const existingOTP = await OTP.findOne({ email: email.toLowerCase() });
-    
+
     if (!existingOTP) {
       return res.status(400).json({ error: 'No registration found. Please register again.' });
     }
@@ -267,14 +275,14 @@ router.post('/login', async (req, res) => {
 
     // Find user by email
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Check if email is verified
     if (!user.isVerified) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'Please verify your email before logging in',
         needsVerification: true,
         email: user.email
@@ -376,6 +384,59 @@ router.get('/me', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Server error, Please try again later' });
   }
 });
+
+// GitHub OAuth 
+router.get('/github',
+  passport.authenticate('github', { 
+    scope: ['user:email'] 
+  })
+);
+
+router.get('/github/callback',
+  passport.authenticate('github', { 
+    session: false, 
+    failureRedirect: '/login' 
+  }),
+  (req, res) => {
+    try {
+      const token = generateJWT(req.user);
+      const frontendUrl = getFrontendUrl();
+      // Redirect to frontend callback with token
+      res.redirect(`${frontendUrl}/auth/github/callback?code=${token}`);
+    } catch (error) {
+      console.error('GitHub OAuth callback error:', error);
+      res.redirect(`${getFrontendUrl()}/login?error=oauth_failed`);
+    }
+  }
+);
+
+
+
+// Google OAuth 
+router.get('/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    prompt: 'select_account' // Forces account selection every time
+  })
+);
+
+router.get('/google/callback',
+  passport.authenticate('google', {
+    session: false,
+    failureRedirect: '/login'
+  }),
+  (req, res) => {
+    try {
+      const token = generateJWT(req.user);
+      const frontendUrl = getFrontendUrl();
+      // Redirect to frontend callback with token
+      res.redirect(`${frontendUrl}/auth/google/callback?code=${token}`);
+    } catch (error) {
+      console.error('Google OAuth callback error:', error);
+      res.redirect(`${getFrontendUrl()}/login?error=oauth_failed`);
+    }
+  }
+);
 
 
 module.exports = router;

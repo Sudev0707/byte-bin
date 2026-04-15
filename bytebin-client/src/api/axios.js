@@ -64,7 +64,7 @@ export const authService = {
     return response.data;
   },
 
-   resendVerificationCode: async (data) => {
+  resendVerificationCode: async (data) => {
     const response = await axiosInstance.post("/auth/resend-otp", data);
     return response.data;
   },
@@ -78,6 +78,39 @@ export const authService = {
     }
     return response.data;
   },
+
+  // google OAuth
+  googleLogin: () => {
+    // Store current URL to redirect back after OAuth
+    localStorage.setItem('oauth_redirect_url', window.location.href);
+    // Redirect to Google OAuth endpoint
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  },
+
+  // GitHub OAuth
+  githubLogin: () => {
+    // Store current URL to redirect back after OAuth
+    localStorage.setItem('oauth_redirect_url', window.location.href);
+    // Redirect to GitHub OAuth endpoint
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/github`;
+  },
+
+  // handle OAuth callback - should be called on the page that handles the OAuth redirect
+  handleOAuthCallback: async (code, provider) => {
+    try {
+      const response = await axiosInstance.post(`/auth/${provider}/callback`, { code });
+      if (response.data.token) {
+        localStorage.setItem("bytebin_token", response.data.token);
+        localStorage.setItem('bytebin_user', JSON.stringify(response.data.user));
+      }
+      return response.data;
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      throw error;
+    }
+  },
+
+
 
   // Get current user profile (refresh from backend)
   getCurrentUser: async () => {

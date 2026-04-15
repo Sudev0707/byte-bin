@@ -18,6 +18,7 @@ import AppSidebar from "@/components/AppSidebar";
 import Footer from "@/components/Footer";
 import NotFound from "./pages/NotFound";
 import { ProblemsProvider } from "@/context/ProblemsContext";
+import OAuthCallback from "@/components/OAuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,9 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
+
+            {/* Protected Routes */}
             <Route path="/" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
             <Route path="/add" element={<ProtectedLayout><AddProblem /></ProtectedLayout>} />
             <Route path="/edit/:id" element={<ProtectedLayout><AddProblem /></ProtectedLayout>} />
