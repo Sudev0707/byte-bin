@@ -20,9 +20,9 @@ const generateTempToken = (userData) => {
 
 const getFrontendUrl = () => {
   if (process.env.NODE_ENV === 'production') {
-    return process.env.FRONTEND_URL || 'https://byte-bin.onrender.com';
+    return process.env.FRONTEND_URL;
   }
-  return process.env.FRONTEND_URL || 'http://localhost:5173';
+  return process.env.FRONTEND_URL;
 };
 
 
@@ -387,15 +387,15 @@ router.get('/me', authMiddleware, async (req, res) => {
 
 // GitHub OAuth 
 router.get('/github',
-  passport.authenticate('github', { 
-    scope: ['user:email'] 
+  passport.authenticate('github', {
+    scope: ['user:email']
   })
 );
 
 router.get('/github/callback',
-  passport.authenticate('github', { 
-    session: false, 
-    failureRedirect: '/login' 
+  passport.authenticate('github', {
+    session: false,
+    failureRedirect: '/login'
   }),
   (req, res) => {
     try {
@@ -445,23 +445,23 @@ router.get('/google/callback', (req, res, next) => {
   })(req, res, next);
 });
 
-    // router.get('/google/callback',
-    //   passport.authenticate('google', {
-    //     session: false,
-    //     failureRedirect: '/login'
-    //   }),
-    //   (req, res) => {
-    //     try {
-    //       const token = generateToken(req.user);
-    //       const frontendUrl = getFrontendUrl();
-    //       // Redirect to frontend callback with token
-    //       res.redirect(`${frontendUrl}/auth/google/callback?code=${token}`);
-    //     } catch (error) {
-    //       console.error('Google OAuth callback error:', error);
-    //       res.redirect(`${getFrontendUrl()}/login?error=oauth_failed`);
-    //     }
-    //   }
-    // );
+// router.get('/google/callback',
+//   passport.authenticate('google', {
+//     session: false,
+//     failureRedirect: '/login'
+//   }),
+//   (req, res) => {
+//     try {
+//       const token = generateToken(req.user);
+//       const frontendUrl = getFrontendUrl();
+//       // Redirect to frontend callback with token
+//       res.redirect(`${frontendUrl}/auth/google/callback?code=${token}`);
+//     } catch (error) {
+//       console.error('Google OAuth callback error:', error);
+//       res.redirect(`${getFrontendUrl()}/login?error=oauth_failed`);
+//     }
+//   }
+// );
 
 
 module.exports = router;
